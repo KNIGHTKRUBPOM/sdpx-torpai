@@ -1,27 +1,27 @@
-﻿# Tech Stack
+# Tech Stack
 
 ## Decision Summary
-ทีม: [ชื่อสมาชิก]
+ทีม: ต่อไป
 Domain: [ชื่อ domain]
-Date: 2026-07-21
+Date: 210769
 
 ## Frontend
-- Framework: Next.js (App Router)
+- Framework: [React]
 - Language: TypeScript
 - Styling: Tailwind CSS
-- Rationale: [ทำไมถึงเลือก]
+- Rationale: ใข้งานง่าย
 
 ## Backend
-- Framework: Next.js API Routes
-- Language: TypeScript
-- Rationale: [ทำไมถึงเลือก]
+- Framework: [FastAPI]
+- Language: [Python]
+- Rationale: เหมาะสำหรับ AI และ REST API
 
 ## Database
-- [PostgreSQL / SQLite / TBD]
-- Rationale: [ทำไมถึงเลือก]
+- [PostgreSQL]
+- Rationale: รองรับข้อมูลจำนวนมาก
 
 ## Deployment
-- Platform: Vercel
+- Platform: [Vercel / Render]
 - Staging URL: [จะเพิ่มหลัง deploy]
 
 ## AI Tools
