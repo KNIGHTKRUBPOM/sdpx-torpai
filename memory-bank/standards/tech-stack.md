@@ -2,7 +2,7 @@
 
 ## Decision Summary
 ทีม: ต่อไป
-Domain: [ชื่อ domain]
+Domain: ระบบยืม-คืนหนังสือ
 Date: 210769
 
 ## Frontend
