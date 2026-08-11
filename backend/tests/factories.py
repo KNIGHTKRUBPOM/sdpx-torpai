@@ -1,5 +1,19 @@
 from src.repositories.book_repository import Book, User
 
+"""
+📌 หมายเหตุสำหรับเพื่อนในทีม (Factory Pattern):
+
+1. ทำไมต้องใช้ Factory? (`make_book` / `make_user`)
+   - หนังสือหรือผู้ใช้งาน 1 คนมีข้อมูลหลายฟิลด์ (เช่น ID, Title, Author, Category, ISBN, Status, Due Date, Borrowed By)
+   - ถ้าทุกครั้งที่เขียน Test ต้องมาพิมพ์ข้อมูล 8 ฟิลด์ซ้ำๆ โค้ดจะยาวและรกรุงรัง
+   - Factory ตัวนี้ต้มน้ำซุป/เตรียมค่า Default ไว้ให้แล้ว เวลาจะใช้งานแค่เรียก `make_book()` ได้เลย
+
+2. วิธีใช้งาน Overrides:
+   - ถ้าอยากได้หนังสือปกติ: `book = make_book()`
+   - ถ้าอยากได้หนังสือที่ถูกยืมแล้ว: `borrowed_book = make_book(status="borrowed", borrowed_by="64010001")`
+   - ใส่เฉพาะฟิลด์ที่เราอยากเปลี่ยน เท่านั้น! ช่วยให้โค้ดอ่านง่ายและดูแลรักษาง่าย
+"""
+
 def make_book(**overrides) -> Book:
     """
     Factory Function สำหรับสร้าง Book instance โดยมีค่า default และรองรับ overrides
