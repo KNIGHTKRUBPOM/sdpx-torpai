@@ -3,8 +3,15 @@ from src.repositories.book_repository import BookRepository, Book
 
 class FakeBookRepository(BookRepository):
     """
-    Fake In-Memory Implementation ของ BookRepository
-    สืบทอดจาก BookRepository (ABC) เพื่อให้แน่ใจว่า Implement Signature เดียวกับของจริง 100%
+    📌 หมายเหตุสำหรับเพื่อนในทีม (Fake Repository Pattern):
+    
+    1. ทำไมถึงต้องมีไฟล์นี้?
+       - ปกติถ้าต่อ Database จริง (PostgreSQL) ตอนรัน Test จะช้ามาก (ใช้เวลาหลายวินาที) และต้องล้างข้อมูลขยะทิ้งทุกครั้ง
+       - ไฟล์นี้จำลองฐานข้อมูลโดยเก็บลงใน Memory (Python Dictionary) ทำให้รัน Test ได้เร็วสุดๆ (0.01 วินาที)
+
+    2. ทำไมต้องสืบทอดจาก `BookRepository` (Class เดียวกับของจริง)?
+       - เพื่อบังคับให้ทั้ง FakeRepo (สำหรับทดสอบ) และ PostgresRepo (ของจริงบน Production) มี Method Signatures เดียวกันเป๊ะ 100%
+       - ทำให้ Service (เช่น BorrowService) สลับไปใช้ FakeRepo ตอนทดสอบได้ทันที โดยที่โค้ดไม่พัง
     """
     def __init__(self, initial_books: Optional[List[Book]] = None):
         self._books_by_id: Dict[str, Book] = {}
