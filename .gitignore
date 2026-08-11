@@ -1,8 +1,14 @@
-﻿.env
+.env
 .env.local
 .env.production
 node_modules/
+**/node_modules/
 __pycache__/
+**/__pycache__/
 .venv/
 .next/
 dist/
+playwright-report/
+test-results/
+**/playwright-report/
+**/test-results/
