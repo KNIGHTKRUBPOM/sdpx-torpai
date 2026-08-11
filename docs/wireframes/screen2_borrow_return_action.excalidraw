@@ -1,0 +1,144 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "id": "rect_frame_2",
+      "type": "rectangle",
+      "x": 100,
+      "y": 100,
+      "width": 800,
+      "height": 600,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "#0f172a",
+      "fillStyle": "solid",
+      "strokeWidth": 2
+    },
+    {
+      "id": "header_2",
+      "type": "text",
+      "x": 140,
+      "y": 130,
+      "width": 400,
+      "height": 30,
+      "text": "Screen 2: Borrow / Return Quick Form & QR Scanner",
+      "fontSize": 20,
+      "fontFamily": 1,
+      "strokeColor": "#818cf8"
+    },
+    {
+      "id": "tab_borrow",
+      "type": "rectangle",
+      "x": 140,
+      "y": 190,
+      "width": 150,
+      "height": 40,
+      "strokeColor": "#6366f1",
+      "backgroundColor": "#4338ca",
+      "fillStyle": "solid"
+    },
+    {
+      "id": "tab_borrow_txt",
+      "type": "text",
+      "x": 170,
+      "y": 200,
+      "text": "📖 ยืมหนังสือ",
+      "fontSize": 16,
+      "strokeColor": "#ffffff"
+    },
+    {
+      "id": "tab_return",
+      "type": "rectangle",
+      "x": 300,
+      "y": 190,
+      "width": 150,
+      "height": 40,
+      "strokeColor": "#334155",
+      "backgroundColor": "#1e293b",
+      "fillStyle": "solid"
+    },
+    {
+      "id": "tab_return_txt",
+      "type": "text",
+      "x": 330,
+      "y": 200,
+      "text": "🔄 คืนหนังสือ",
+      "fontSize": 16,
+      "strokeColor": "#94a3b8"
+    },
+    {
+      "id": "form_container",
+      "type": "rectangle",
+      "x": 140,
+      "y": 260,
+      "width": 720,
+      "height": 360,
+      "strokeColor": "#334155",
+      "backgroundColor": "#1e293b",
+      "fillStyle": "solid"
+    },
+    {
+      "id": "input_student_id",
+      "type": "rectangle",
+      "x": 180,
+      "y": 320,
+      "width": 640,
+      "height": 45,
+      "strokeColor": "#475569",
+      "backgroundColor": "#0f172a"
+    },
+    {
+      "id": "input_student_txt",
+      "type": "text",
+      "x": 200,
+      "y": 332,
+      "text": "รหัสนักศึกษา: เช่น 66010001",
+      "fontSize": 14,
+      "strokeColor": "#94a3b8"
+    },
+    {
+      "id": "input_isbn",
+      "type": "rectangle",
+      "x": 180,
+      "y": 410,
+      "width": 640,
+      "height": 45,
+      "strokeColor": "#475569",
+      "backgroundColor": "#0f172a"
+    },
+    {
+      "id": "input_isbn_txt",
+      "type": "text",
+      "x": 200,
+      "y": 422,
+      "text": "รหัส ISBN หนังสือ: เช่น 978-0262046305",
+      "fontSize": 14,
+      "strokeColor": "#94a3b8"
+    },
+    {
+      "id": "btn_submit",
+      "type": "rectangle",
+      "x": 180,
+      "y": 490,
+      "width": 640,
+      "height": 50,
+      "strokeColor": "#6366f1",
+      "backgroundColor": "#4f46e5",
+      "fillStyle": "solid"
+    },
+    {
+      "id": "btn_submit_txt",
+      "type": "text",
+      "x": 420,
+      "y": 505,
+      "text": "ยืนยันการทำรายการยืม",
+      "fontSize": 16,
+      "strokeColor": "#ffffff"
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#090d16"
+  },
+  "files": {}
+}
