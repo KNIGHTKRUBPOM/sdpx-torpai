@@ -1,40 +1,67 @@
-# Test Plan
+# PairEval Test Plan
 
-เอกสารแผนการทดสอบระบบยืม-คืนหนังสือ **SDPX - Torpai** ซึ่งรวบรวมข้อกำหนดมาจาก **Key Business Rules** ใน `memory-bank/units/*/unit-brief.md` ทุกข้อ
+แผนนี้ trace จาก `memory-bank/units/*/unit-brief.md` และ PairEval PRD v2.0 ทุก test ต้องตอบได้ว่าลบ business rule บรรทัดใดแล้ว test จะแดง
 
----
+## Unit tests ที่ทำใน WS-03
 
-## Functions ที่ต้อง Test
+### PairingService
 
-### 1. BorrowService.borrow_book()
-- **หนังสือที่มีสถานะ `available` และระบุ Student ID ที่ถูกต้อง** → ยืมสำเร็จ เปลี่ยนสถานะเป็น `borrowed`, ระบุ `borrowed_by` และกำหนดวันคืน (`due_date`)
-- **หนังสือถูกยืมไปแล้ว (สถานะเป็น `borrowed`)** → ยืมไม่สำเร็จ แสดงข้อความแจ้งเตือนยืมซ้ำไม่ได้ (`BookAlreadyBorrowedError`)
-- **หาหนังสือไม่พบในระบบ (ISBN ไม่ถูกต้อง)** → ยืมไม่สำเร็จ แสดงข้อความไม่พบหนังสือ (`BookNotFoundError`)
-- **ไม่ระบุ Student ID (ค่าว่าง)** → ยืมไม่สำเร็จ แสดงข้อความต้องการ Student ID (`InvalidStudentIdError`)
-- **หนังสือไม่มี ISBN หรือชื่อเรื่อง (ข้อมูลไม่สมบูรณ์)** → ยืมไม่สำเร็จ Validation Error
+- `PAIR-01` evaluator ไม่ได้รับ pair ที่มีกลุ่มตัวเอง
+- `PAIR-02` evaluator/pair ไม่ซ้ำใน criterion/generation เดียวกัน
+- `PAIR-03` coverage ของทุก pair ต่างกันไม่เกิน 1
+- `PAIR-04` workload ต่อ evaluator ต่างกันไม่เกิน 1
+- `PAIR-05` seed + input เดิมให้ assignments และ display side เดิม
+- `PAIR-06` ห้อง 12 คน/3 กลุ่มลด coverage 5 → 4, workload 1 พร้อมเหตุผลที่มีตัวเลข
+- `PAIR-07` individual evaluation: `m≤2` ปิด, `m=3` low confidence, `m=5` coverage 3, `m=8` ถูก workload cap
+- Repository contract: generated assignments ถูก replace/list ผ่าน interface เดียวกับ production adapter
 
-### 2. BorrowService.return_book()
-- **คืนหนังสือที่มีสถานะ `borrowed`** → คืนสำเร็จ เปลี่ยนสถานะกลับเป็น `available`, เคลียร์ `due_date` และ `borrowed_by` เป็น `None`
-- **คืนหนังสือที่ยังไม่ถูกยืม (สถานะเป็น `available`)** → คืนไม่สำเร็จ แสดงข้อความหนังสือไม่ได้ถูกยืมอยู่ (`BookNotBorrowedError`)
-- **หาหนังสือไม่พบในระบบ (ISBN ไม่ถูกต้อง)** → คืนไม่สำเร็จ แสดงข้อความไม่พบหนังสือ (`BookNotFoundError`)
+### ScoringService
 
-### 3. BookCatalogService.search_books()
-- **การค้นหาข้อความ (Title, Author, ISBN)** → ต้องทำการจับคู่แบบ Case-insensitive เสมอ
-- **การกรองตามหมวดหมู่ (Category)** → คืนเฉพาะรายการหนังสือที่ตรงกับหมวดหมู่ที่เลือก
-- **สถานะหนังสือทุกเล่มในผลลัพธ์** → ต้องเป็นได้เพียง `available` หรือ `borrowed` เท่านั้น
+- `SCORE-01` ใช้เฉพาะ comparison สถานะ `SUBMITTED`; draft ไม่มีผลต่อ `q`
+- `SCORE-02` choice 1–6 map เป็นคะแนนฝั่งซ้าย/ขวาที่รวมกัน 1.0 และไม่มีค่ากลาง
+- `SCORE-03` quality index เป็น weighted mean และรองรับ instructor weight ทศนิยม
+- `SCORE-04` band mapping: `q=0 → 0.60`, `q=0.5 → 0.80`, `q=1 → 1.00`
+- `SCORE-05` criterion weights ต้องรวม 100% ± 0.01
+- `SCORE-06` participation ratio/multiplier แยกจาก shared group component
+- `SCORE-07` golden test จาก PRD §9.5: complete `16.93`, incomplete `10.97`
 
-### 4. UserBooksService.get_user_borrowed_books()
-- **ดึงรายการหนังสือตาม Student ID** → คืนเฉพาะหนังสือที่มีสถานะ `borrowed` และมี `borrowed_by` ตรงกับ Student ID ที่ระบุ
-- **ข้อมูลหนังสือของผู้ใช้ทุกเล่ม** → ต้องแสดงวันกำหนดส่งคืน (`due_date`) อย่างชัดเจนเสมอ
+### API walking skeleton
 
-### 5. APIGateway / Data Validation
-- **Request / Response Payload** → ทุกการรับ-ส่งข้อมูลต้องผ่านการตรวจสอบโครงสร้าง Pydantic Schema
-- **กรณีข้อมูลไม่ถูกต้องหรือหาหนังสือไม่เจอ** → ส่ง HTTP Error Code ที่เหมาะสม (400 Bad Request หรือ 404 Not Found) พร้อมข้อความอธิบาย
+- Health response ระบุ PairEval/version/mode และทุก response มี `X-Request-ID`
+- Feasibility endpoint คืน camel-case contract และ reduced coverage
+- Unknown assignment คืน standard error envelope พร้อม stable code/requestId
 
----
+## Frontend component tests
 
-## กฎที่ยังไม่มี test (ยอมรับไว้ชั่วคราว)
+- App แสดง PairEval heading, navigation และ main evaluation CTA
+- Evaluation card แสดง radio choice ครบ 6 ตัวพร้อม accessible labels
+- เลือกคำตอบแล้ว progress และ save status เปลี่ยน
+- Submit แสดง privacy-safe interim result โดยไม่มี evaluator identity
 
-- **[ระบบกรองค้นหาแบบ Case-Insensitive ใน BookCatalogService]** — อยู่ระหว่างจัดเตรียม In-Memory Query Engine ใน WS-03
-- **[ระบบดึงรายการหนังสือของผู้ใช้ (UserBooksService)]** — จะทำ Unit Test เพิ่มเติมเมื่อเชื่อมต่อ User Session / Auth Service ใน WS-03
-- **[HTTP Status Code & Pydantic Schema Validation ใน APIGateway]** — จะทำ Integration Test ร่วมกับ FastAPI TestClient ใน WS-04
+## E2E smoke test
+
+- Homepage โหลดด้วย title `PairEval` และ main navigation มองเห็นได้
+- กด CTA เข้า evaluation, เลือก forced choice, progress เปลี่ยน และ submit ได้
+
+## Fidelity Check (WS-03)
+
+- Target rule: `SCORE-01` — ใช้เฉพาะ comparison สถานะ `SUBMITTED`
+- Mutation: ลบตัวกรอง `point.status == ComparisonStatus.SUBMITTED` ชั่วคราวใน `ScoringService.quality_index`
+- Test ที่แดง: `test_quality_index_uses_submitted_comparisons_and_fractional_weights_only`
+- ผลจริง: **1 failed in 0.13s**; ค่า `q` ผิดจาก `0.666…` เป็น `0.00985…` เพราะ draft น้ำหนัก 100 หลุดเข้าคำนวณ
+- Restore: คืน production rule แล้วและรัน full suite ผ่านอีกครั้ง ✅
+
+## กฎที่ยังไม่มี automated test (ยอมรับชั่วคราว)
+
+- Google OIDC, hosted-domain restriction และ cross-classroom authorization — integration/security tests เมื่อ production auth adapter พร้อม
+- Atomic CSV import/formula injection — unit + integration tests ใน Classroom adapter implementation
+- Autosave debounce/network retry/revision audit — API integration + Playwright ใน WS-04
+- PostgreSQL uniqueness, immutable final snapshot และ append-only audit storage — database integration tests หลัง migration
+- Student anonymity across every endpoint/export — negative security suite ก่อน M3; ห้าม release จริงโดยไม่มีชุดนี้
+- NFR performance/a11y — k6 และ automated/manual accessibility suite ใน milestone ที่ PRD ระบุ
+
+## Performance budget
+
+- Backend unit suite: `< 10 s`
+- Frontend unit suite: `< 10 s`
+- Pair generation target: `≤ 10 s` สำหรับ 200 students × 5 criteria (ยังต้องมี performance test แยก)

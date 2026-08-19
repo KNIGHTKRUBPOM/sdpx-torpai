@@ -1,0 +1,1 @@
+"""PairEval domain value objects."""

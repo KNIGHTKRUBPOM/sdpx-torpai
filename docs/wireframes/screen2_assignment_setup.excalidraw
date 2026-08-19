@@ -1,0 +1,17 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {"id":"frame","type":"rectangle","x":80,"y":60,"width":920,"height":700,"strokeColor":"#172554","backgroundColor":"#f8fafc","fillStyle":"solid","strokeWidth":2,"roughness":0,"opacity":100},
+    {"id":"title","type":"text","x":120,"y":95,"width":600,"height":32,"text":"สร้าง Assignment / Sprint Demo","fontSize":24,"fontFamily":1,"strokeColor":"#172554","textAlign":"left"},
+    {"id":"form","type":"rectangle","x":120,"y":160,"width":520,"height":510,"strokeColor":"#cbd5e1","backgroundColor":"#ffffff","fillStyle":"solid","strokeWidth":1,"roughness":0},
+    {"id":"formText","type":"text","x":150,"y":190,"width":460,"height":430,"text":"ชื่อ Assignment\n[Sprint Demo Evaluation]\n\nArtifact URL\n[https://studio.example/showcase]\n\nคะแนน: Group 15 / Individual 5\n\nGroup criteria\nUX 40% · Completeness 35% · Innovation 25%\n\nIndividual criteria\nTeamwork 50% · Management 50%\n\nDeadlines + Timezone: Asia/Bangkok","fontSize":17,"fontFamily":1,"strokeColor":"#334155","textAlign":"left"},
+    {"id":"preview","type":"rectangle","x":680,"y":160,"width":270,"height":330,"strokeColor":"#818cf8","backgroundColor":"#eef2ff","fillStyle":"solid","strokeWidth":1,"roughness":0},
+    {"id":"previewText","type":"text","x":710,"y":195,"width":210,"height":235,"text":"Pairing preview\n\nTarget coverage 5×\nActual coverage 4×\nWorkload 1 pair / criterion\nTotal 12 comparisons\n\nลด coverage เพราะแต่ละคู่มี evaluator ที่มีสิทธิ์ 4 คน","fontSize":17,"fontFamily":1,"strokeColor":"#3730a3","textAlign":"left"},
+    {"id":"publish","type":"rectangle","x":680,"y":530,"width":270,"height":56,"strokeColor":"#4f46e5","backgroundColor":"#4f46e5","fillStyle":"solid","strokeWidth":1,"roughness":0},
+    {"id":"publishText","type":"text","x":735,"y":547,"width":160,"height":22,"text":"Publish & Generate","fontSize":18,"fontFamily":1,"strokeColor":"#ffffff","textAlign":"center"}
+  ],
+  "appState": {"gridSize":20,"viewBackgroundColor":"#eef2ff"},
+  "files": {}
+}
