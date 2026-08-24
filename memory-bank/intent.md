@@ -1,29 +1,45 @@
-# Intent: Campus Book Borrowing Service
+# Intent: PairEval
 
 ## Intent Statement
-Enable university students and staff to search, borrow, and return library books online, reducing physical queue times, manual paperwork, and book return conflicts.
+
+Enable university instructors to collect pairwise judgments about group work and individual contribution, then turn only submitted comparisons into transparent, reproducible scores without letting the system replace academic judgment.
 
 ## Business Context
-- **Problem:** ระบบการยืม-คืนหนังสือในห้องสมุดมหาวิทยาลัยแบบเดิมยังมีความล่าช้าในการค้นหาเล่มหนังสือ การกรอกเอกสารยืมด้วยมือ และขาดระบบตรวจสอบสถานะความพร้อมของหนังสือแบบเรียลไทม์
-- **Users:** นิสิต/นักศึกษา (Students), อาจารย์และบุคลากรทางการศึกษา (Faculty & Staff), เจ้าหน้าที่ห้องสมุด (Librarians)
-- **Value:** เพิ่มความสะดวกและรวดเร็วในการยืม-คืนหนังสือ สามารถค้นหา ค้นคืน และตรวจสอบสถานะหนังสือได้ทันที ลดขั้นตอนงานเอกสาร และลดปัญหาการยืมหนังสือซ้ำซ้อน
+
+- **Problem:** absolute-score anchoring, free riders in group work, and inflated peer ratings make traditional grading inconsistent and difficult to defend.
+- **Users:** classroom owners/co-teachers, teaching assistants, and students using mobile-first web screens.
+- **Value:** comparisons are easier to make consistently; instructors get coverage/confidence evidence; students receive privacy-aware feedback.
 
 ## Success Criteria
-- [ ] ผู้ใช้สามารถค้นหาหนังสือ กรองตามหมวดหมู่ และเช็คสถานะการยืม (Available/Borrowed) ได้แบบเรียลไทม์
-- [ ] ผู้ใช้สามารถทำรายการยืมและคืนหนังสือผ่านระบบออนไลน์ได้สำเร็จโดยระบุรหัสนักศึกษา และ ISBN
-- [ ] ระบบ Backend (FastAPI) สามารถประมวลผลคำขอยืม-คืน และส่งตอบกลับ REST API ภายในระยะเวลา < 500ms
+
+- [ ] At least 90% of assigned evaluators submit all required comparisons.
+- [ ] Median evaluation time stays at or below 15 minutes per assignment.
+- [ ] Pair generation reports feasible coverage/workload before publish and preserves all pairing invariants.
+- [ ] Scoring is reproducible and the PRD worked example remains protected by a golden unit test.
+- [ ] Students cannot access evaluator identity through UI, API, or exports.
 
 ## Decisions Already Made
-- **Frontend Stack:** React 19 + TypeScript + Vite + Tailwind CSS (v4) + Oxlint
-- **Backend Stack:** FastAPI (Python 3.10+) + Uvicorn + Pydantic
-- **Database:** PostgreSQL (วางแผนใช้เป็นฐานข้อมูลหลักสำหรับจัดเก็บข้อมูลหนังสือ สมาชิก และประวัติการยืม-คืน)
-- **Architecture:** Decoupled Full-stack Architecture (Frontend แยกกับ Backend สื่อสารผ่าน REST APIs)
-- **Agent Guidelines:** ปฏิบัติตามมาตรฐานใน `Agent.md` และ `memory-bank/standards/tech-stack.md`
 
-## Out of Scope
-- ระบบชำระเงินค่าปรับหนังสือเกินกำหนดผ่าน Payment Gateway (ใช้เพียงการคำนวณและแสดงยอดค่าปรับในระบบ)
-- ระบบสแกนบาร์โค้ดด้วยฮาร์ดแวร์ Physical Barcode Scanner ในเฟสแรก (ใช้วิธีกรอกรหัส ISBN/รหัสนักศึกษาผ่าน UI)
-- ระบบส่งอีเมลแจ้งเตือนภายนอก (Third-party Email/SMS Notification System)
+- Use six forced-choice options with no neutral value.
+- Use score band mapping with default floor `0.60` and ceiling `1.00`; never normalize scores to sum to one.
+- Compute group coverage and evaluator workload together; reduce infeasible coverage with a numeric explanation.
+- Use individual coverage derived from group size (`m - 2`).
+- Treat earned quality and participation as separate concerns.
+- Apply the PRD default participation policy to the combined personal score until OQ-2 is resolved.
+- Use float-configurable instructor weight in a weighted mean.
+- Store left/right display position and make pair generation deterministic for a fixed seed.
+- Keep instructor review/finalize authority and immutable calculation snapshots in the target architecture.
+
+## Out of Scope through WS-03
+
+- LMS/LTI integration, native mobile application, multi-language UI, and Bradley–Terry/Elo models
+- Production Google OIDC configuration, university roster integration, email delivery, and PostgreSQL migration
+- Final-grade automation, XLSX generation, appeals workflow, and production load/security certification
+
+## Open Product Decisions
+
+The implementation follows PRD defaults for OQ-1 through OQ-8. Before M2, the instructor must explicitly decide score floor, participation scope, withdrawal handling, and time-on-task privacy policy.
 
 ## Status
-In Progress — WS-02 ยึดข้อมูลตาม agent.md
+
+In progress — WS-03 walking skeleton and unit-test harness

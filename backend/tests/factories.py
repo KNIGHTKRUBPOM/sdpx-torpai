@@ -1,43 +1,53 @@
-from src.repositories.book_repository import Book, User
+from decimal import Decimal
 
-"""
-📌 หมายเหตุสำหรับเพื่อนในทีม (Factory Pattern):
+from src.domain.models import (
+    ComparisonStatus,
+    CriterionScoreInput,
+    Student,
+    WeightedPoint,
+)
 
-1. ทำไมต้องใช้ Factory? (`make_book` / `make_user`)
-   - หนังสือหรือผู้ใช้งาน 1 คนมีข้อมูลหลายฟิลด์ (เช่น ID, Title, Author, Category, ISBN, Status, Due Date, Borrowed By)
-   - ถ้าทุกครั้งที่เขียน Test ต้องมาพิมพ์ข้อมูล 8 ฟิลด์ซ้ำๆ โค้ดจะยาวและรกรุงรัง
-   - Factory ตัวนี้ต้มน้ำซุป/เตรียมค่า Default ไว้ให้แล้ว เวลาจะใช้งานแค่เรียก `make_book()` ได้เลย
 
-2. วิธีใช้งาน Overrides:
-   - ถ้าอยากได้หนังสือปกติ: `book = make_book()`
-   - ถ้าอยากได้หนังสือที่ถูกยืมแล้ว: `borrowed_book = make_book(status="borrowed", borrowed_by="64010001")`
-   - ใส่เฉพาะฟิลด์ที่เราอยากเปลี่ยน เท่านั้น! ช่วยให้โค้ดอ่านง่ายและดูแลรักษาง่าย
-"""
+def make_student(**overrides: str) -> Student:
+    values = {"id": "student-01", "group_id": "group-a"}
+    values.update(overrides)
+    return Student(**values)
 
-def make_book(**overrides) -> Book:
-    """
-    Factory Function สำหรับสร้าง Book instance โดยมีค่า default และรองรับ overrides
-    """
-    defaults = {
-        "id": "1",
-        "title": "Introduction to Algorithms",
-        "author": "Thomas H. Cormen",
-        "category": "วิทยาการคอมพิวเตอร์",
-        "isbn": "978-0262046305",
-        "status": "available",
-        "due_date": None,
-        "borrowed_by": None
-    }
-    return Book(**{**defaults, **overrides})
 
-def make_user(**overrides) -> User:
-    """
-    Factory Function สำหรับสร้าง User instance โดยมีค่า default และรองรับ overrides
-    """
-    defaults = {
-        "id": "64010001",
-        "name": "John Doe",
-        "email": "john@uni.ac.th",
-        "role": "student"
-    }
-    return User(**{**defaults, **overrides})
+def make_classroom_students(
+    group_sizes: tuple[int, ...] = (4, 4, 4),
+) -> list[Student]:
+    students: list[Student] = []
+    sequence = 1
+    for group_index, group_size in enumerate(group_sizes, start=1):
+        for _ in range(group_size):
+            students.append(
+                make_student(
+                    id=f"student-{sequence:02d}",
+                    group_id=f"group-{group_index}",
+                )
+            )
+            sequence += 1
+    return students
+
+
+def make_weighted_point(
+    score: str = "0.8",
+    evaluator_weight: str = "1.0",
+    status: ComparisonStatus = ComparisonStatus.SUBMITTED,
+) -> WeightedPoint:
+    return WeightedPoint(
+        score=Decimal(score),
+        evaluator_weight=Decimal(evaluator_weight),
+        status=status,
+    )
+
+
+def make_criterion(
+    quality_index: str = "0.5",
+    weight_pct: str = "100",
+) -> CriterionScoreInput:
+    return CriterionScoreInput(
+        quality_index=Decimal(quality_index),
+        weight_pct=Decimal(weight_pct),
+    )

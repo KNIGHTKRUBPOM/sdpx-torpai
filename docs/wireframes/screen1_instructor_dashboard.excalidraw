@@ -1,0 +1,16 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {"id":"frame","type":"rectangle","x":80,"y":60,"width":920,"height":620,"strokeColor":"#172554","backgroundColor":"#f8fafc","fillStyle":"solid","strokeWidth":2,"roughness":0,"opacity":100},
+    {"id":"title","type":"text","x":120,"y":95,"width":500,"height":32,"text":"PairEval / Software Studio","fontSize":24,"fontFamily":1,"strokeColor":"#172554","textAlign":"left"},
+    {"id":"cta","type":"rectangle","x":760,"y":90,"width":190,"height":48,"strokeColor":"#4f46e5","backgroundColor":"#4f46e5","fillStyle":"solid","strokeWidth":1,"roughness":0},
+    {"id":"ctaText","type":"text","x":795,"y":104,"width":130,"height":22,"text":"+ สร้าง Assignment","fontSize":16,"fontFamily":1,"strokeColor":"#ffffff","textAlign":"center"},
+    {"id":"stats","type":"text","x":120,"y":180,"width":820,"height":75,"text":"Participation 92%        Coverage 4×        Low confidence 2\nสถานะ: OPEN · Deadline 23 ส.ค. 23:59","fontSize":20,"fontFamily":1,"strokeColor":"#334155","textAlign":"left"},
+    {"id":"list","type":"rectangle","x":120,"y":290,"width":830,"height":300,"strokeColor":"#cbd5e1","backgroundColor":"#ffffff","fillStyle":"solid","strokeWidth":1,"roughness":0},
+    {"id":"listText","type":"text","x":150,"y":325,"width":760,"height":210,"text":"Sprint Demo Evaluation\nOPEN · 36 / 40 students submitted\n[ดู Feasibility] [เปิดรายงาน] [Recompute]\n\nFinal Project Evaluation\nDRAFT · criteria weights complete\n[แก้ไข] [Preview pairs] [Publish]","fontSize":18,"fontFamily":1,"strokeColor":"#1e293b","textAlign":"left"}
+  ],
+  "appState": {"gridSize":20,"viewBackgroundColor":"#eef2ff"},
+  "files": {}
+}

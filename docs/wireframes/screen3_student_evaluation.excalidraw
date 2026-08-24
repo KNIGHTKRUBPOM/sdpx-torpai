@@ -1,0 +1,17 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {"id":"phone","type":"rectangle","x":250,"y":40,"width":430,"height":800,"strokeColor":"#172554","backgroundColor":"#f8fafc","fillStyle":"solid","strokeWidth":2,"roughness":0,"opacity":100},
+    {"id":"header","type":"text","x":285,"y":80,"width":360,"height":60,"text":"PairEval\nUser Experience · 3 / 5","fontSize":22,"fontFamily":1,"strokeColor":"#172554","textAlign":"left"},
+    {"id":"pair","type":"rectangle","x":285,"y":175,"width":360,"height":210,"strokeColor":"#cbd5e1","backgroundColor":"#ffffff","fillStyle":"solid","strokeWidth":1,"roughness":0},
+    {"id":"pairText","type":"text","x":310,"y":205,"width":310,"height":155,"text":"กลุ่ม Aurora        กลุ่ม Borealis\n[ดูผลงาน ↗]         [ดูผลงาน ↗]\n\nเลือกฝั่งที่ตอบโจทย์ UX ได้ดีกว่า","fontSize":17,"fontFamily":1,"strokeColor":"#334155","textAlign":"center"},
+    {"id":"choices","type":"text","x":300,"y":430,"width":335,"height":220,"text":"○ 1  ซ้ายดีกว่ามาก\n○ 2  ซ้ายดีกว่า\n○ 3  ซ้ายดีกว่าเล็กน้อย\n○ 4  ขวาดีกว่าเล็กน้อย\n○ 5  ขวาดีกว่า\n○ 6  ขวาดีกว่ามาก","fontSize":18,"fontFamily":1,"strokeColor":"#1e293b","textAlign":"left"},
+    {"id":"saved","type":"text","x":310,"y":675,"width":310,"height":24,"text":"✓ บันทึกแล้ว เมื่อ 14:32","fontSize":15,"fontFamily":1,"strokeColor":"#047857","textAlign":"center"},
+    {"id":"submit","type":"rectangle","x":300,"y":735,"width":330,"height":56,"strokeColor":"#4f46e5","backgroundColor":"#4f46e5","fillStyle":"solid","strokeWidth":1,"roughness":0},
+    {"id":"submitText","type":"text","x":390,"y":752,"width":150,"height":22,"text":"ส่งการประเมิน","fontSize":18,"fontFamily":1,"strokeColor":"#ffffff","textAlign":"center"}
+  ],
+  "appState": {"gridSize":20,"viewBackgroundColor":"#e0e7ff"},
+  "files": {}
+}

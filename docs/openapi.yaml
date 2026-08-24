@@ -1,0 +1,604 @@
+openapi: 3.1.0
+info:
+  title: PairEval API
+  version: 0.3.0
+  description: WS-03 walking-skeleton contract traced to docs/backlog.md.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://{host}
+    description: Deployment-specific PairEval API host
+    variables:
+      host:
+        default: api.paireval.invalid
+        description: Replace with the approved staging or production host.
+security:
+  - bearerAuth: []
+tags:
+  - name: Classrooms
+    description: Classroom creation, membership and atomic roster operations.
+  - name: Assignments
+    description: Assignment lifecycle, feasibility and pair generation.
+  - name: Evaluations
+    description: Privacy-scoped pairwise drafts, submissions and scores.
+paths:
+  /api/classrooms:
+    post:
+      tags: [Classrooms]
+      operationId: createClassroom
+      summary: Create a classroom
+      x-user-story: US-01
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassroomCreate'
+      responses:
+        '201':
+          description: Classroom created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Classroom'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/classrooms/{classroomId}/roster:import:
+    parameters:
+      - $ref: '#/components/parameters/ClassroomId'
+    post:
+      tags: [Classrooms]
+      operationId: importRoster
+      summary: Atomically import a classroom roster
+      x-user-story: US-02
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Entire roster imported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterImportResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/assignments:
+    post:
+      tags: [Assignments]
+      operationId: createAssignment
+      summary: Create a draft assignment and criteria
+      x-user-story: US-03
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentCreate'
+      responses:
+        '201':
+          description: Draft assignment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/assignments/{assignmentId}/feasibility:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    get:
+      tags: [Assignments]
+      operationId: getPairingFeasibility
+      summary: Preview feasible coverage and evaluator workload
+      x-user-story: US-04
+      responses:
+        '200':
+          description: Feasibility result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feasibility'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/assignments/{assignmentId}:publish:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    post:
+      tags: [Assignments]
+      operationId: publishAssignment
+      summary: Validate and publish an assignment, persisting generated pairs
+      x-user-story: US-05
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [seed]
+              properties:
+                seed:
+                  type: integer
+                  format: int64
+      responses:
+        '201':
+          description: Assignment published and pairs created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishResult'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/assignments/{assignmentId}/my-evaluations:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+      - name: side
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [GROUP, INDIVIDUAL]
+    get:
+      tags: [Evaluations]
+      operationId: getMyEvaluations
+      summary: Get authorized evaluator pair assignments and current drafts
+      x-user-story: US-06
+      responses:
+        '200':
+          description: Evaluation workload
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvaluationPair'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/comparisons/{pairAssignmentId}:
+    parameters:
+      - name: pairAssignmentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags: [Evaluations]
+      operationId: saveComparisonDraft
+      summary: Idempotently save the evaluator's current draft
+      x-user-story: US-06
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComparisonSave'
+      responses:
+        '200':
+          description: Current comparison draft
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comparison'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/assignments/{assignmentId}/submissions:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+    post:
+      tags: [Evaluations]
+      operationId: submitEvaluation
+      summary: Submit the latest drafts for one evaluation side
+      x-user-story: US-07
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [side]
+              properties:
+                side:
+                  type: string
+                  enum: [GROUP, INDIVIDUAL]
+      responses:
+        '201':
+          description: Submission revision recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/assignments/{assignmentId}/my-score:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    get:
+      tags: [Evaluations]
+      operationId: getMyInterimScore
+      summary: Return only the caller's privacy-safe interim score
+      x-user-story: US-08
+      responses:
+        '200':
+          description: Interim score or insufficient-data state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyScore'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: OIDC
+  parameters:
+    ClassroomId:
+      name: classroomId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AssignmentId:
+      name: assignmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Malformed request or file
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: Role is not allowed to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Resource was not found in the caller's classroom scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Conflict:
+      description: Resource state or deadline conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ValidationError:
+      description: Request failed semantic validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    ClassroomCreate:
+      type: object
+      additionalProperties: false
+      required: [name, timezone, allowedEmailDomains]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        timezone:
+          type: string
+          examples: [Asia/Bangkok]
+        allowedEmailDomains:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            format: hostname
+    Classroom:
+      allOf:
+        - $ref: '#/components/schemas/ClassroomCreate'
+        - type: object
+          required: [id, slug, status]
+          properties:
+            id:
+              type: string
+              format: uuid
+            slug:
+              type: string
+            status:
+              type: string
+              enum: [ACTIVE, ARCHIVED]
+    RosterImportResult:
+      type: object
+      required: [imported, groups]
+      properties:
+        imported:
+          type: integer
+          minimum: 0
+        groups:
+          type: integer
+          minimum: 0
+    CriterionInput:
+      type: object
+      additionalProperties: false
+      required: [side, name, weightPct]
+      properties:
+        side:
+          type: string
+          enum: [GROUP, INDIVIDUAL]
+        name:
+          type: string
+          minLength: 1
+        weightPct:
+          type: number
+          minimum: 0
+          maximum: 100
+    AssignmentCreate:
+      type: object
+      additionalProperties: false
+      required:
+        - classroomId
+        - name
+        - description
+        - artifactUrl
+        - groupMaxScore
+        - individualMaxScore
+        - groupDeadlineUtc
+        - timezone
+        - criteria
+      properties:
+        classroomId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        artifactUrl:
+          type: string
+          format: uri
+        groupMaxScore:
+          type: number
+          minimum: 0
+        individualMaxScore:
+          type: number
+          minimum: 0
+        groupDeadlineUtc:
+          type: string
+          format: date-time
+        individualDeadlineUtc:
+          type: [string, 'null']
+          format: date-time
+        timezone:
+          type: string
+        criteria:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/CriterionInput'
+    Assignment:
+      allOf:
+        - $ref: '#/components/schemas/AssignmentCreate'
+        - type: object
+          required: [id, status]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [DRAFT, PUBLISHED, OPEN, CLOSED, FINALIZED]
+    Feasibility:
+      type: object
+      required: [targetCoverage, actualCoverage, workload, pairCount, totalComparisons, reduced, explanation]
+      properties:
+        targetCoverage:
+          type: integer
+        actualCoverage:
+          type: integer
+        workload:
+          type: integer
+        pairCount:
+          type: integer
+        totalComparisons:
+          type: integer
+        reduced:
+          type: boolean
+        explanation:
+          type: string
+    PublishResult:
+      type: object
+      required: [assignmentId, status, pairAssignments, feasibility]
+      properties:
+        assignmentId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          const: PUBLISHED
+        pairAssignments:
+          type: integer
+          minimum: 1
+        feasibility:
+          $ref: '#/components/schemas/Feasibility'
+    EvaluationPair:
+      type: object
+      required: [id, criterion, leftItem, rightItem, artifactUrls, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        criterion:
+          type: string
+        leftItem:
+          type: string
+        rightItem:
+          type: string
+        artifactUrls:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: string
+            format: uri
+        choice:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 6
+        status:
+          type: string
+          enum: [UNANSWERED, DRAFT, SUBMITTED]
+    ComparisonSave:
+      type: object
+      additionalProperties: false
+      required: [choice]
+      properties:
+        choice:
+          type: integer
+          minimum: 1
+          maximum: 6
+        timeOnTaskMs:
+          type: integer
+          minimum: 0
+    Comparison:
+      type: object
+      required: [pairAssignmentId, choice, status, savedAt]
+      properties:
+        pairAssignmentId:
+          type: string
+          format: uuid
+        choice:
+          type: integer
+          minimum: 1
+          maximum: 6
+        status:
+          type: string
+          enum: [DRAFT, SUBMITTED]
+        savedAt:
+          type: string
+          format: date-time
+    SubmissionResult:
+      type: object
+      required: [assignmentId, side, revision, submittedCount, unansweredCount, submittedAt]
+      properties:
+        assignmentId:
+          type: string
+          format: uuid
+        side:
+          type: string
+          enum: [GROUP, INDIVIDUAL]
+        revision:
+          type: integer
+          minimum: 1
+        submittedCount:
+          type: integer
+        unansweredCount:
+          type: integer
+        submittedAt:
+          type: string
+          format: date-time
+    MyScore:
+      type: object
+      required: [state, label, participationRatio, participationMultiplier, flags]
+      properties:
+        state:
+          type: string
+          enum: [INSUFFICIENT_DATA, INTERIM, FINAL]
+        label:
+          type: string
+        groupComponent:
+          type: [number, 'null']
+        individualComponent:
+          type: [number, 'null']
+        participationRatio:
+          type: number
+          minimum: 0
+          maximum: 1
+        participationMultiplier:
+          type: number
+          minimum: 0
+          maximum: 1
+        total:
+          type: [number, 'null']
+        flags:
+          type: array
+          items:
+            type: string
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, field, requestId]
+          properties:
+            code:
+              type: string
+              pattern: '^[A-Z0-9_]+$'
+            message:
+              type: string
+            field:
+              type: [string, 'null']
+            requestId:
+              type: string

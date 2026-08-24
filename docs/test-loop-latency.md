@@ -1,36 +1,34 @@
-# ⏱️ Test Loop Latency Report (ทีมต่อไป TorPai)
+# Test Loop Latency — PairEval WS-03
 
-ผลการทดสอบการวัดเวลา Test Loop ในโปรเจกต์ **TorPai (UniLib)** สำหรับเตรียมความพร้อมก่อนเข้าเรียนเรื่อง Unit Testing:
+วัดเมื่อ 2026-08-19 บน workspace ปัจจุบัน หลังเปลี่ยน Vitest environment จาก jsdom ที่ไม่รองรับ Node 25 เป็น happy-dom
 
----
+## ผลที่ยืนยันแล้ว
 
-## 📊 สรุปผลการจับเวลา (Baseline Latency)
+- Backend Pytest (Python 3.12 container): **23 passed in 1.62s**, source coverage **90%**
+- Frontend Vitest: **3 passed in 7.40s** (final post-install run)
+- Playwright Chromium: **2 passed in 2.5s** (เมื่อ dev server พร้อม)
+- Fidelity single-test failure: **0.13s**
 
-| Framework | ขอบเขต (Scope) | เวลาที่ใช้รันทั้ง Test Suite | Latency เมื่อแก้ Code 1 บรรทัด (Single Test Execution) | สถานะความพร้อม |
-|---|---|---|---|---|
-| **pytest 9.1.1** | Backend (FastAPI) | **0.90 วินาที** | **0.03 วินาที (30 ms)** | 🟢 ผ่านมาตรฐาน (< 10 วินาที) |
-| **Vitest 4.1.10** | Frontend (React + TS) | **2.27 วินาที** | **0.088 วินาที (88 ms)** | 🟢 ผ่านมาตรฐาน (< 10 วินาที) |
+ทั้ง backend/frontend unit loops อยู่ต่ำกว่า budget 10 วินาทีตาม WS-03
 
----
+## Commands
 
-## 🛠️ คำสั่งที่ใช้ในการวัดผล (Execution Commands)
-
-### 1. Python Backend
-```bash
+```powershell
+# Backend — ใช้เมื่อ local Python เป็นมาตรฐาน CPython
+python -m pip install -r requirements.txt
 cd backend
-python -m pytest --durations=5
-```
+python -m pytest -q --durations=5 --cov=src --cov-report=term-missing
 
-### 2. Frontend (React / TypeScript)
-```bash
+# Frontend
 cd frontend
 npm test
+npm run test:e2e
 ```
 
-### 3. Playwright E2E Verification
-```bash
-cd frontend
-npx playwright --version
-```
-- **Playwright Version:** `1.62.1`
-- **Browser Binary:** Chromium Installed
+ถ้าอยู่ในโฟลเดอร์ `backend` อยู่แล้ว ให้ติดตั้งด้วย
+`python -m pip install -r ..\requirements.txt` แทน หาก pytest แจ้งว่าไม่รู้จัก
+`--cov` แปลว่า Python environment ที่กำลังใช้อยู่ยังไม่มี `pytest-cov`
+ให้ตรวจด้วย `python -m pip show pytest-cov` และติดตั้ง requirements ด้วย Python
+ตัวเดียวกับที่ใช้สั่ง `python -m pytest`
+
+เครื่องที่ใช้ตรวจรอบนี้มี MSYS Python ซึ่งไม่มี compatible `pydantic-core` wheel จึงรัน backend verification ด้วย official `python:3.12-slim` container แทน; production code ไม่ได้มี Docker-specific fallback

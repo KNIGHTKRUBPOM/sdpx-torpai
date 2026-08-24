@@ -1,124 +1,56 @@
-# SDPX - Torpai (ต่อไป) 🚀
+# PairEval
 
-โปรเจกต์เว็บแอปพลิเคชัน Full-stack พัฒนาโดยทีม **ต่อไป** 
+ระบบประเมินผลงานนักศึกษาแบบ **Pairwise Comparison** สำหรับรายวิชาในมหาวิทยาลัย ผู้ประเมินเลือกจากตัวเลือกบังคับ 6 ระดับว่า item ฝั่งใดดีกว่า ระบบจึงคำนวณคะแนนที่อธิบายและตรวจสอบย้อนกลับได้ โดยอาจารย์ยังเป็นผู้ตัดสินและ finalize คะแนนเสมอ
 
----
+โปรเจกต์นี้รีแฟกเตอร์ตาม PRD `PairEval v2.0` และ workshop WS-01 ถึง WS-03 โดยโฟกัสที่ **M1 Walking Skeleton** และ test harness ของ Pairing/Scoring Engine
 
-## 🛠️ Tech Stack
+![PairEval overview](docs/pair-eval-preview.png)
 
-### **Frontend**
-- **Framework:** React 19
-- **Language:** TypeScript
-- **Build Tool:** Vite
-- **Styling:** Tailwind CSS
-- **Linter:** Oxlint
+## ฟีเจอร์ในขอบเขตปัจจุบัน
 
-### **Backend**
-- **Framework:** FastAPI
-- **Language:** Python
-- **Server:** Uvicorn
-- **Validation:** Pydantic
+- หน้า responsive สำหรับดู assignment, ทำ pairwise evaluation และดูผลชั่วคราว
+- 6-point forced choice พร้อม accessible labels และ progress
+- Pairing feasibility และ deterministic pair generation ตาม seed
+- Pure scoring functions: quality index, band mapping, criterion weights และ participation multiplier
+- FastAPI walking-skeleton endpoints สำหรับ publish, evaluation draft/submit และ score preview
+- OpenAPI contract, architecture/ER diagrams, backlog และ unit briefs ที่ trace หากันได้
+- Unit tests ด้วย fake repository, factories และ fixtures พร้อม Playwright smoke test
 
-### **Database (Planned)**
-- PostgreSQL
+Google OIDC, PostgreSQL persistence, audit storage และ production deployment ยังเป็นงานหลัง WS-03; demo backend ใช้ in-memory state โดยไม่มี production seed/reset endpoint
 
----
+## เริ่มใช้งาน
 
-## 📁 โครงสร้างโปรเจกต์ (Project Structure)
+### Backend
 
-```text
-sdpx-torpai/
-├── backend/                  # FastAPI Backend Service
-│   └── main.py               # จุดเริ่มต้นระบบ Backend API
-├── frontend/                 # React + TypeScript Frontend Application
-│   ├── src/                  # ซอร์สโค้ดฝั่ง Frontend
-│   └── package.json          # Dependency และ Scripts สำหรับ Frontend
-├── memory-bank/              # เอกสารและมาตรฐานการพัฒนา (Tech Stack & Standards)
-├── requirements.txt          # Python dependencies สำหรับ Backend
-└── README.md                 # เอกสารอธิบายโปรเจกต์
+```powershell
+python -m pip install -r requirements.txt
+cd backend
+python -m uvicorn main:app --reload
 ```
 
----
+API docs: `http://localhost:8000/docs`
 
-## 🚀 การติดตั้งและการใช้งาน (Getting Started)
+### Frontend
 
-### **ข้อกำหนดเบื้องต้น (Prerequisites)**
-- Node.js (v18 ขึ้นไปแนะนำ)
-- Python (v3.10 ขึ้นไปแนะนำ)
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
 
----
+เปิด `http://localhost:5173`
 
-### 1. 🐍 การตั้งค่า Backend (FastAPI)
+## ตรวจสอบคุณภาพ
 
-1. เข้าไปยังไดเรกทอรี `backend`:
-   ```bash
-   cd backend
-   ```
+```powershell
+cd backend
+python -m pytest -q
 
-2. สร้าง Virtual Environment:
-   ```bash
-   python -m venv .venv
-   ```
+cd ../frontend
+npm test
+npm run lint
+npm run build
+npm run test:e2e
+```
 
-3. เปิดใช้งาน Virtual Environment:
-   - **macOS / Linux:**
-     ```bash
-     source .venv/bin/activate
-     ```
-   - **Windows:**
-     ```bash
-     .venv\Scripts\activate
-     ```
-
-4. ติดตั้ง Package ต่างๆ จาก `requirements.txt`:
-   ```bash
-   pip install -r ../requirements.txt
-   ```
-
-5. เริ่มต้นรันเซิร์ฟเวอร์ Backend:
-   ```bash
-   uvicorn main:app --reload
-   ```
-
-6. เข้าใช้งาน API และ Interactive Documentation:
-   - API Endpoint: `http://localhost:8000`
-   - Swagger UI Documentation: `http://localhost:8000/docs`
-   - ReDoc Documentation: `http://localhost:8000/redoc`
-
----
-
-### 2. ⚛️ การตั้งค่า Frontend (React + Vite)
-
-1. เข้าไปยังไดเรกทอรี `frontend`:
-   ```bash
-   cd frontend
-   ```
-
-2. ติดตั้ง Node dependencies:
-   ```bash
-   npm install
-   ```
-
-3. เริ่มต้นรันเซิร์ฟเวอร์สำหรับพัฒนาระบบ (Development Server):
-   ```bash
-   npm run dev
-   ```
-
-4. เปิดบราวเซอร์และเข้าถึงแอปพลิเคชันได้ที่:
-   - URL: `http://localhost:5173`
-
----
-
-## 📜 คำสั่งที่ใช้งานบ่อย (Useful Commands)
-
-### **Frontend**
-- `npm run dev` - รัน Development Server ด้วย HMR
-- `npm run build` - ตรวจสอบ Type และ Build โปรเจกต์สำหรับการ Production
-- `npm run lint` - ตรวจสอบโค้ดด้วย Oxlint
-- `npm run preview` - พรีวิว Build output สำหรับ Production
-
----
-
-## 📝 ทีมงานและการปรับปรุง (Team & Standards)
-
-ข้อมูลมาตรฐานทางเทคนิคและข้อตกลงในการพัฒนาระบบสามารถดูเพิ่มเติมได้ที่ [memory-bank/standards/tech-stack.md](file:///Users/anasdareme/Documents/GitHub/sdpx-torpai/memory-bank/standards/tech-stack.md)
+ดูรายละเอียดบริบทที่ [`memory-bank/intent.md`](memory-bank/intent.md), backlog ที่ [`docs/backlog.md`](docs/backlog.md) และ API contract ที่ [`docs/openapi.yaml`](docs/openapi.yaml)
