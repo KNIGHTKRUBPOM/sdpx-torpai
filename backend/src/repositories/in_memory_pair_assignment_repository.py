@@ -24,3 +24,6 @@ class InMemoryPairAssignmentRepository(PairAssignmentRepository):
         criterion_id: str,
     ) -> list[PairAssignment]:
         return list(self._assignments.get((assignment_id, criterion_id), []))
+
+    def clear(self) -> None:
+        self._assignments.clear()

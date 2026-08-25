@@ -28,4 +28,25 @@ describe('PairEval app', () => {
     expect(screen.getByRole('heading', { name: 'ส่งการประเมินแล้ว' })).toBeInTheDocument()
     expect(screen.getByText('16.93')).toBeInTheDocument()
   })
+
+  it('shows incomplete warning when submitting before answering all pairs', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'เริ่มประเมิน' }))
+
+    // Answer only first pair
+    const radios = screen.getAllByRole('radio', { name: /ซ้ายดีกว่าเล็กน้อย/ })
+    fireEvent.click(radios[0])
+    expect(screen.getByTestId('evaluation-progress')).toHaveTextContent('1 / 3')
+
+    // Click submit
+    fireEvent.click(screen.getByRole('button', { name: 'ส่งการประเมิน' }))
+
+    // Expect incomplete alert
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.getByTestId('incomplete-title')).toHaveTextContent('ยังไม่ได้ตอบ 2 คู่')
+
+    // Confirm submission
+    fireEvent.click(screen.getByTestId('confirm-submit-button'))
+    expect(screen.getByRole('heading', { name: 'ส่งการประเมินแล้ว' })).toBeInTheDocument()
+  })
 })

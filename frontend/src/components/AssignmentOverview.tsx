@@ -1,7 +1,7 @@
 type AssignmentOverviewProps = { onStart: () => void }
 
-const Metric = ({ value, label, tone }: { value: string; label: string; tone: string }) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50">
+const Metric = ({ value, label, tone, testId }: { value: string; label: string; tone: string; testId?: string }) => (
+  <div data-testid={testId} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50">
     <div className={`mb-3 h-1.5 w-12 rounded-full ${tone}`} />
     <p className="font-display text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
     <p className="mt-1 text-sm text-slate-500">{label}</p>
@@ -28,10 +28,10 @@ export function AssignmentOverview({ onStart }: AssignmentOverviewProps) {
             </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-5 backdrop-blur">
-            <div className="flex items-center justify-between text-sm"><span className="text-slate-300">เวลาที่เหลือ</span><span className="font-semibold text-amber-300">2 วัน 08 ชม.</span></div>
+            <div data-testid="time-remaining-card" className="flex items-center justify-between text-sm"><span className="text-slate-300">เวลาที่เหลือ</span><span className="font-semibold text-amber-300">2 วัน 08 ชม.</span></div>
             <div className="my-4 h-px bg-white/10" />
             <div className="flex items-end justify-between gap-4">
-              <div><p className="text-xs uppercase tracking-[0.16em] text-slate-400">Progress</p><p className="font-display mt-1 text-2xl font-semibold">0 / 3 คู่</p></div>
+              <div data-testid="overview-progress-card"><p className="text-xs uppercase tracking-[0.16em] text-slate-400">Progress</p><p data-testid="overview-progress-value" className="font-display mt-1 text-2xl font-semibold">0 / 3 คู่</p></div>
               <button type="button" onClick={onStart} data-testid="main-cta" className="rounded-xl bg-indigo-400 px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-indigo-500/20 transition hover:-translate-y-0.5 hover:bg-indigo-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">เริ่มประเมิน</button>
             </div>
           </div>
@@ -44,10 +44,10 @@ export function AssignmentOverview({ onStart }: AssignmentOverviewProps) {
           <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">Autosave พร้อมใช้งาน</span>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Metric value="92%" label="การมีส่วนร่วมทั้งห้อง" tone="bg-emerald-500" />
-          <Metric value="4×" label="coverage จริงต่อคู่" tone="bg-indigo-500" />
-          <Metric value="1" label="คู่ต่อคน / เกณฑ์" tone="bg-cyan-500" />
-          <Metric value="6" label="forced choices ไม่มีค่ากลาง" tone="bg-amber-500" />
+          <Metric testId="metric-participation" value="92%" label="การมีส่วนร่วมทั้งห้อง" tone="bg-emerald-500" />
+          <Metric testId="metric-coverage" value="4×" label="coverage จริงต่อคู่" tone="bg-indigo-500" />
+          <Metric testId="metric-workload" value="1" label="คู่ต่อคน / เกณฑ์" tone="bg-cyan-500" />
+          <Metric testId="metric-scale" value="6" label="forced choices ไม่มีค่ากลาง" tone="bg-amber-500" />
         </div>
       </section>
 
@@ -57,8 +57,8 @@ export function AssignmentOverview({ onStart }: AssignmentOverviewProps) {
           <p className="mt-4 text-sm leading-6 text-slate-600">พิจารณาความชัดเจนของ flow, feedback หลังการกระทำ และประสบการณ์บนหน้าจอขนาดเล็ก เปิดผลงานทั้งสองฝั่งก่อนเลือกคำตอบ</p>
           <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-600"><span className="rounded-lg bg-slate-100 px-3 py-2">Completeness 35%</span><span className="rounded-lg bg-slate-100 px-3 py-2">Innovation 25%</span></div>
         </article>
-        <aside className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">Feasibility note</p><h2 className="font-display mt-2 text-lg font-semibold text-amber-950">coverage ลดจาก 5× เหลือ 4×</h2>
+        <aside aria-labelledby="feasibility-heading" data-testid="feasibility-note" className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">Feasibility note</p><h2 id="feasibility-heading" className="font-display mt-2 text-lg font-semibold text-amber-950">coverage ลดจาก 5× เหลือ 4×</h2>
           <p className="mt-3 text-sm leading-6 text-amber-900/75">ห้องตัวอย่างมี 3 กลุ่ม คู่ที่จำกัดที่สุดมีผู้ประเมินที่มีสิทธิ์ 4 คน จึงลดอย่างโปร่งใสและยังคง workload ที่ 1 คู่ต่อเกณฑ์</p>
         </aside>
       </section>

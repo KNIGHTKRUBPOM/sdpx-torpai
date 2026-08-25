@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Literal
@@ -402,4 +403,50 @@ def get_my_score(
         "participationMultiplier": float(multiplier),
         "total": float(total),
         "flags": [],
+    }
+
+
+def is_production() -> bool:
+    env = os.getenv("ENVIRONMENT", os.getenv("NODE_ENV", os.getenv("APP_ENV", "development"))).lower()
+    return env == "production"
+
+
+def guard_test_endpoint() -> None:
+    if is_production():
+        raise ApiError(404, "NOT_FOUND", "Test endpoints are disabled in production.")
+
+
+@app.post("/api/test/seed", status_code=200)
+def seed_test_data():
+    guard_test_endpoint()
+    pair_repository.clear()
+    comparison_state.clear()
+    submission_revisions.clear()
+    idempotent_submissions.clear()
+
+    feasibility, assignments = pairing_service.generate_group_pairs(
+        DEMO_ASSIGNMENT_ID,
+        DEMO_CRITERION_ID,
+        DEMO_STUDENTS,
+        seed=20260819,
+    )
+    return {
+        "status": "SEEDED",
+        "assignmentId": DEMO_ASSIGNMENT_ID,
+        "criterionId": DEMO_CRITERION_ID,
+        "pairAssignmentsCount": len(assignments),
+        "targetCoverage": feasibility.target_coverage,
+        "actualCoverage": feasibility.actual_coverage,
+    }
+
+
+@app.post("/api/test/cleanup", status_code=200)
+def cleanup_test_data():
+    guard_test_endpoint()
+    pair_repository.clear()
+    comparison_state.clear()
+    submission_revisions.clear()
+    idempotent_submissions.clear()
+    return {
+        "status": "CLEANED",
     }
