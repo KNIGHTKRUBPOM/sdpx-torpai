@@ -1,0 +1,7 @@
+email,group_name,student_id,display_name,artifact_url
+alpha1@university.example,Alpha,660001,Alpha One,https://example.com/alpha
+alpha2@university.example,Alpha,660002,Alpha Two,https://example.com/alpha
+beta1@university.example,Beta,660003,Beta One,https://example.com/beta
+beta2@university.example,Beta,660004,Beta Two,https://example.com/beta
+gamma1@university.example,Gamma,660005,Gamma One,https://example.com/gamma
+gamma2@university.example,Gamma,660006,Gamma Two,https://example.com/gamma

@@ -12,8 +12,8 @@ erDiagram
     CRITERION ||--o{ PAIR_ASSIGNMENT : scopes
     USER ||--o{ PAIR_ASSIGNMENT : evaluates
     PAIR_ASSIGNMENT ||--o| COMPARISON : answers
-    COMPARISON ||--o{ COMPARISON_REVISION : preserves
-    ASSIGNMENT ||--o{ COMPUTED_SCORE : snapshots
+    ASSIGNMENT ||--o{ SUBMISSION_REVISION : preserves
+    USER ||--o{ SUBMISSION_REVISION : submits
     ASSIGNMENT ||--o{ AUDIT_EVENT : audits
 
     USER {
@@ -35,6 +35,7 @@ erDiagram
         uuid user_id FK
         uuid group_id FK
         string role
+        string status
     }
     GROUP_ENTITY {
         uuid id PK
@@ -48,6 +49,13 @@ erDiagram
         string artifact_url
         decimal group_max_score
         decimal individual_max_score
+        datetime group_deadline_utc
+        datetime individual_deadline_utc
+        decimal score_floor
+        decimal score_ceiling
+        decimal completion_threshold
+        int min_comparisons
+        decimal instructor_weight
         bigint pairing_seed
         string status
     }
@@ -76,21 +84,15 @@ erDiagram
         datetime saved_at
         datetime submitted_at
     }
-    COMPARISON_REVISION {
-        uuid id PK
-        uuid comparison_id FK
-        int revision_no
-        int choice
-        string status
-    }
-    COMPUTED_SCORE {
+    SUBMISSION_REVISION {
         uuid id PK
         uuid assignment_id FK
-        uuid criterion_id FK
-        uuid item_id
-        decimal quality_index
-        decimal weighted_score
-        boolean is_final
+        uuid evaluator_user_id FK
+        string side
+        int revision_no
+        string idempotency_key UK
+        json answers_json
+        datetime submitted_at
     }
     AUDIT_EVENT {
         uuid id PK
@@ -103,4 +105,6 @@ erDiagram
     }
 ```
 
-Key constraints not expressible in the diagram are listed in the PRD and unit briefs: unordered pair uniqueness per evaluator/generation, submitted-only scoring, immutable final score snapshots, and append-only audit events.
+`PAIR_ASSIGNMENT.item_*` resolves to `GROUP_ENTITY` for Group criteria and `USER` for Individual criteria.
+Mutable `COMPARISON` rows are current drafts; scoring reads only the latest immutable
+`SUBMISSION_REVISION.answers_json`. Final score snapshots remain M3.

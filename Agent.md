@@ -11,7 +11,10 @@ PairEval helps university instructors evaluate group work and individual contrib
 
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS
 - Backend: FastAPI, Python, Pydantic
-- Planned database: PostgreSQL
+- Database: PostgreSQL 17 through Docker Compose; SQLite fallback for local Backend development
 - Tests: Vitest, Pytest, Playwright
+
+Run the complete local stack with `docker compose up --build -d` and open
+`http://localhost:8080`.
 
 Product decisions are documented in `memory-bank/intent.md`, and unit-level rules are in `memory-bank/units/*/unit-brief.md`.

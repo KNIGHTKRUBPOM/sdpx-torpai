@@ -114,12 +114,17 @@ Backlog นี้ย่อ PairEval PRD v2.0 เป็น Sprint ที่ปิ
 
 **Accepted:** unequal group sizes, infeasible coverage, retry/idempotency, deadline races, fractional instructor weight, formula-injection CSV, and insufficient-anonymity states are represented in stories/tests.
 
-**Deferred:** LMS sync, offline queue conflict resolution, XLSX identity export, appeals and automated finalize belong to M2–M4 because they do not shorten the first end-to-end walking skeleton.
+**Delivered after the walking skeleton:** XLSX export, appeals and automated finalize อยู่ใน Local M3/M4 แล้ว
+
+**Still deferred:** LMS sync และ offline queue conflict resolution ไม่อยู่ใน critical path ของ PRD v2.0
 
 **Rejected for v1:** neutral choice, sum-to-one normalization, runtime pair randomization, local passwords, and exposing daily score deltas conflict directly with PRD decisions D1, D2, FR-PAIR-01, FR-AUTH-01 and FR-ANON-03.
 
 ## Sprint board snapshot
 
-- **Done:** reusable stack/tool setup, product intent, architecture, ERD, OpenAPI contract, pairing/scoring unit-test harness, responsive evaluation prototype
-- **In Progress:** connect walking-skeleton UI to FastAPI persistence flow
-- **To Do:** production OIDC, PostgreSQL adapter, atomic CSV importer, immutable audit store, deployment and external-user M1 validation
+- **Done locally:** M1–M4 application scope: persistence/Docker artifacts, Group+Individual evaluation,
+  scoring/reports/CSV+XLSX, quality governance, immutable finalize/audit, appeals, privacy/retention,
+  notifications, automated WCAG, k6 scenario, CI workflow และ operations runbook
+- **External validation:** staging deployment, external-user M1 walkthrough และ classroom pilot ≤30 คนสำหรับ M2 DoD
+- **Production gates:** production OIDC/HTTPS, GitHub required checks,
+  manual accessibility, security/privacy sign-off, monitoring/alert และ backup restore drill

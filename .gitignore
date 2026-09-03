@@ -22,4 +22,7 @@ test-results/
 *.pyc
 .pytest_cache/
 .coverage
+backend/paireval.db
+/paireval.db
+backend/paireval.db.pre-test-cleanup-*
 .DS_Store

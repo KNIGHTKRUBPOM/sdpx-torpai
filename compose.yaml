@@ -1,0 +1,75 @@
+name: paireval
+
+services:
+  db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-paireval}
+      POSTGRES_USER: ${POSTGRES_USER:-paireval}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-paireval_dev_only}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      AUTH_MODE: demo
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-paireval}:${POSTGRES_PASSWORD:-paireval_dev_only}@db:5432/${POSTGRES_DB:-paireval}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-15}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-0}
+      DB_REQUEST_CONCURRENCY: ${DB_REQUEST_CONCURRENCY:-15}
+      THREAD_POOL_SIZE: ${THREAD_POOL_SIZE:-15}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-6}
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "8080:8080"
+
+  maintenance:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "src.jobs.maintenance", "--loop"]
+    environment:
+      AUTH_MODE: demo
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-paireval}:${POSTGRES_PASSWORD:-paireval_dev_only}@db:5432/${POSTGRES_DB:-paireval}
+      DB_POOL_SIZE: ${MAINTENANCE_DB_POOL_SIZE:-2}
+      DB_MAX_OVERFLOW: ${MAINTENANCE_DB_MAX_OVERFLOW:-0}
+      DB_REQUEST_CONCURRENCY: ${MAINTENANCE_DB_REQUEST_CONCURRENCY:-2}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

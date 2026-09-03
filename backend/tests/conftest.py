@@ -1,8 +1,17 @@
+from __future__ import annotations
+
+import os
+
 import pytest
 
 from src.services.pairing_service import PairingService
 from tests.factories import make_classroom_students
 from tests.fakes.fake_pair_assignment_repo import FakePairAssignmentRepository
+
+
+# Set before tests import `main`, so API integration tests never write fixtures
+# into the developer's persistent local demo database.
+os.environ["DATABASE_URL"] = "sqlite+pysqlite:///:memory:"
 
 
 @pytest.fixture

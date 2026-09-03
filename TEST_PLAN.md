@@ -42,6 +42,40 @@
 
 - Homepage โหลดด้วย title `PairEval` และ main navigation มองเห็นได้
 - กด CTA เข้า evaluation, เลือก forced choice, progress เปลี่ยน และ submit ได้
+- M2 สร้างห้อง 15 คนผ่าน API fixture, generate individual pairs, เปิดหน้า Individual,
+  autosave, reload, restore และ submit แยกฝั่งผ่าน browser
+- Instructor เปิด governance panel, ดู quality/audit/appeals และควบคุม finalize/reopen ได้ตาม role
+- Student เปิด notification inbox และเข้า evaluation/score จาก notification target ได้
+- ทุกหน้าใน browser flow ผ่าน automated axe scan ระดับ WCAG A/AA
+
+## M2 integration และ regression
+
+- Individual generation ขนาดกลุ่ม 3/4/5/8 deterministic, ไม่เจอตัวเอง,
+  workload ตรง feasibility และ coverage ต่างกันไม่เกิน 1
+- กลุ่มขนาด 2 ปิด Individual Evaluation พร้อมเหตุผล
+- ห้อง 2 กลุ่มไม่แจก pair ที่ละเมิด self-group exclusion และสร้างคู่ให้ผู้สอนแทน
+- Assignment 15 คน/3 กลุ่มสร้าง Group + Individual assignments รวม 105 รายการ
+- นักศึกษา 15 คน submit ครบทั้งสองฝั่งแล้ว Group/Individual component และ participation คำนวณได้
+- Instructor report ทุกชุดตรวจ role authorization; Student เรียกตรงได้ 403
+- CSV มี UTF-8 BOM, Content-Disposition และไม่มี evaluator identity
+- Draft หลัง submission ไม่เปลี่ยนคะแนนจนกว่าจะ re-submit revision ใหม่
+- Retry Idempotency-Key เดิมหลัง deadline คืน submission เดิม
+- Autosave หน้าจอถูก serialize และ Submit disabled จน save ครบ
+
+## M3/M4 integration และ security regression
+
+- QS-01..07 ครอบ low coverage, straight-lining, position bias, speed run, intransitivity,
+  self-group favoritism และ tie-corrected Kendall's W โดยไม่ลดน้ำหนักอัตโนมัติ
+- Exclusion/override ต้องมีเหตุผลและสร้าง assignment-scoped audit event
+- Finalize สร้าง immutable score snapshot; Reopen สร้าง revision ใหม่และ Owner เท่านั้นที่ทำได้
+- Appeals เปิดหลัง Finalize 7 วันและ instructor resolve/reject พร้อมเหตุผลได้
+- Co-teacher เห็น audit actor เป็น pseudonym; Owner identity access ถูก audit
+- Audit table ปฏิเสธ UPDATE/DELETE ที่ระดับ SQLite/PostgreSQL trigger
+- Raw CSV เป็น pseudonymous โดย default; identity export ต้อง Owner + `EXPORT_IDENTITIES`
+- CSV/XLSX ป้องกัน spreadsheet formula injection และ XLSX มี 4 sheets + metadata
+- Notification มี dedupe key และไม่มีคะแนน/identity ใน payload
+- Maintenance reminder, auto-finalize และ retention/anonymization ทดสอบแบบ deterministic
+- Security headers, stable 422 envelope, IDOR/cross-role access และ privacy acknowledgement มี regression test
 
 ## Fidelity Check (WS-03)
 
@@ -51,17 +85,27 @@
 - ผลจริง: **1 failed in 0.13s**; ค่า `q` ผิดจาก `0.666…` เป็น `0.00985…` เพราะ draft น้ำหนัก 100 หลุดเข้าคำนวณ
 - Restore: คืน production rule แล้วและรัน full suite ผ่านอีกครั้ง ✅
 
-## กฎที่ยังไม่มี automated test (ยอมรับชั่วคราว)
+## กฎ/หลักฐานที่ยังต้องใช้ environment ภายนอก
 
-- Google OIDC, hosted-domain restriction และ cross-classroom authorization — integration/security tests เมื่อ production auth adapter พร้อม
-- Atomic CSV import/formula injection — unit + integration tests ใน Classroom adapter implementation
-- Autosave debounce/network retry/revision audit — API integration + Playwright ใน WS-04
-- PostgreSQL uniqueness, immutable final snapshot และ append-only audit storage — database integration tests หลัง migration
-- Student anonymity across every endpoint/export — negative security suite ก่อน M3; ห้าม release จริงโดยไม่มีชุดนี้
-- NFR performance/a11y — k6 และ automated/manual accessibility suite ใน milestone ที่ PRD ระบุ
+- Google OIDC, hosted-domain restriction, secret manager และ HTTPS deployment
+- CI performance result บน GitHub-hosted runner จริง
+- external-user staging walkthrough, classroom pilot ≤30 คน และ manual screen-reader review
+- GitHub branch protection/production approval, monitoring alert และ backup restore drill
 
 ## Performance budget
 
 - Backend unit suite: `< 10 s`
 - Frontend unit suite: `< 10 s`
-- Pair generation target: `≤ 10 s` สำหรับ 200 students × 5 criteria (ยังต้องมี performance test แยก)
+- Pair generation target: `≤ 10 s` สำหรับ 200 students × 5 criteria
+- Evaluation load p95 `< 2 s`, p99 `< 4 s`; autosave p95 `< 300 ms`; submit p95 `< 800 ms`
+- Score recomputation `≤ 30 s`; error rate `< 1%`
+
+## ผลรอบล่าสุด (3 September 2026)
+
+- Backend บน ephemeral PostgreSQL: 47 passed, source coverage 88%, 4.82s
+- Frontend: 8 passed; lint และ production build ผ่าน
+- Playwright กับ full Docker stack: 4 passed รวม automated WCAG A/AA, 3.6s
+- Compose config: `compose.yaml` และ `compose.test.yaml` valid
+- Docker: db/backend/frontend healthy, maintenance running และ named-volume data อยู่ครบหลัง restart
+- k6 200 VU: 0% error; Evaluation p95 349.71ms/p99 395.52ms; autosave p95 8.87ms;
+  submit p95 65.05ms; pairing 839.85ms; recompute 73.96ms — ผ่าน NFR-PERF-01..05

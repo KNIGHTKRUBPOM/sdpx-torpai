@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: PairEval API
-  version: 0.3.0
-  description: WS-03 walking-skeleton contract traced to docs/backlog.md.
+  version: 2.0.0-m4-local
+  description: PairEval local M4 contract for evaluation, scoring governance, notifications and CSV/XLSX export.
   license:
     name: MIT
     identifier: MIT
@@ -15,6 +15,7 @@ servers:
         description: Replace with the approved staging or production host.
 security:
   - bearerAuth: []
+  - demoUser: []
 tags:
   - name: Classrooms
     description: Classroom creation, membership and atomic roster operations.
@@ -22,8 +23,43 @@ tags:
     description: Assignment lifecycle, feasibility and pair generation.
   - name: Evaluations
     description: Privacy-scoped pairwise drafts, submissions and scores.
+  - name: Governance
+    description: Finalization, overrides, exclusions, appeals and audit.
+  - name: Privacy
+    description: Privacy notice, acknowledgement and data-subject export.
+  - name: Notifications
+    description: User notification inbox and maintenance jobs.
 paths:
+  /health:
+    get:
+      security: []
+      operationId: health
+      summary: Verify API and database connectivity
+      responses:
+        '200': { description: API and database are healthy }
+  /api/demo/users:
+    get:
+      security: []
+      operationId: listDemoUsers
+      summary: List selectable users when demo authentication is enabled
+      responses:
+        '200': { description: Demo users }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/me:
+    get:
+      operationId: getCurrentUser
+      summary: Return the caller, memberships and privacy acknowledgement state
+      responses:
+        '200': { description: Current user }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/classrooms:
+    get:
+      tags: [Classrooms]
+      operationId: listClassrooms
+      summary: List classrooms visible to the caller
+      responses:
+        '200': { description: Visible classrooms }
+        '401': { $ref: '#/components/responses/Unauthorized' }
     post:
       tags: [Classrooms]
       operationId: createClassroom
@@ -80,7 +116,9 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
-  /api/assignments:
+  /api/classrooms/{classroomId}/assignments:
+    parameters:
+      - $ref: '#/components/parameters/ClassroomId'
     post:
       tags: [Assignments]
       operationId: createAssignment
@@ -103,6 +141,14 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /api/assignments:
+    get:
+      tags: [Assignments]
+      operationId: listAssignments
+      summary: List assignments visible to the caller
+      responses:
+        '200': { description: Visible assignments }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/assignments/{assignmentId}/feasibility:
     parameters:
       - $ref: '#/components/parameters/AssignmentId'
@@ -163,10 +209,11 @@ paths:
       - $ref: '#/components/parameters/AssignmentId'
       - name: side
         in: query
-        required: true
+        required: false
         schema:
           type: string
           enum: [GROUP, INDIVIDUAL]
+          default: GROUP
     get:
       tags: [Evaluations]
       operationId: getMyEvaluations
@@ -276,12 +323,300 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+  /api/assignments/{assignmentId}/reports/group:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    get:
+      tags: [Evaluations]
+      operationId: getGroupReport
+      summary: Aggregate group criterion scores and flags
+      responses:
+        '200': { description: Group report }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/assignments/{assignmentId}/reports/individual:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    get:
+      tags: [Evaluations]
+      operationId: getIndividualReport
+      summary: Aggregate individual scores and participation
+      responses:
+        '200': { description: Individual report }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/assignments/{assignmentId}/reports/coverage:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    get:
+      tags: [Evaluations]
+      operationId: getCoverageReport
+      summary: Return assigned and submitted coverage for every pair
+      responses:
+        '200': { description: Pair coverage report }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/assignments/{assignmentId}/reports/quality:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    get:
+      tags: [Evaluations]
+      operationId: getQualityReport
+      summary: Return current quality signals and recommended actions
+      responses:
+        '200': { description: Quality report }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/assignments/{assignmentId}/exports:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    post:
+      tags: [Evaluations]
+      operationId: exportReport
+      summary: Export CSV or a four-sheet XLSX report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [format, report]
+              properties:
+                format: { type: string, enum: [CSV, XLSX] }
+                report: { type: string, enum: [GROUP, INDIVIDUAL, COVERAGE, RAW] }
+                includeIdentities: { type: boolean, default: false }
+                identityConfirmation: { type: [string, 'null'], const: EXPORT_IDENTITIES }
+      responses:
+        '200':
+          description: CSV file
+          content:
+            text/csv:
+              schema: { type: string, format: binary }
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/assignments/{assignmentId}:finalize:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    post:
+      tags: [Governance]
+      operationId: finalizeAssignment
+      summary: Create an immutable final score snapshot after the deadlines
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: [string, 'null'], maxLength: 2000 }
+      responses:
+        '200': { description: Assignment finalized }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/assignments/{assignmentId}:reopen:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    post:
+      tags: [Governance]
+      operationId: reopenAssignment
+      summary: Reopen a finalized assignment with a reason
+      requestBody:
+        $ref: '#/components/requestBodies/ReasonRequest'
+      responses:
+        '200': { description: Assignment reopened }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/assignments/{assignmentId}/overrides:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    post:
+      tags: [Governance]
+      operationId: createScoreOverride
+      summary: Override a group or individual component with a reason
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [side, itemId, overrideValue, reason]
+              properties:
+                side: { type: string, enum: [GROUP, INDIVIDUAL] }
+                itemId: { type: string }
+                overrideValue: { type: number, minimum: 0 }
+                reason: { type: string, minLength: 5, maxLength: 2000 }
+      responses:
+        '201': { description: Override recorded and audited }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/comparisons/{pairAssignmentId}:exclude:
+    parameters:
+      - name: pairAssignmentId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [Governance]
+      operationId: excludeComparison
+      summary: Exclude a submitted comparison with a reason
+      requestBody:
+        $ref: '#/components/requestBodies/ReasonRequest'
+      responses:
+        '201': { description: Comparison excluded and audited }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/appeals:
+    post:
+      tags: [Governance]
+      operationId: createAppeal
+      summary: Create a student appeal during the seven-day final-score window
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assignmentId, message]
+              properties:
+                assignmentId: { type: string, format: uuid }
+                message: { type: string, minLength: 10, maxLength: 4000 }
+      responses:
+        '201': { description: Appeal created }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/assignments/{assignmentId}/appeals:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    get:
+      tags: [Governance]
+      operationId: listAppeals
+      summary: List appeals for an assignment
+      responses:
+        '200': { description: Appeals }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/appeals/{appealId}:resolve:
+    parameters:
+      - name: appealId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [Governance]
+      operationId: resolveAppeal
+      summary: Resolve or reject an appeal with a reason
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, resolution]
+              properties:
+                status: { type: string, enum: [RESOLVED, REJECTED] }
+                resolution: { type: string, minLength: 5, maxLength: 4000 }
+      responses:
+        '200': { description: Appeal resolved }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/assignments/{assignmentId}/audit:
+    parameters:
+      - $ref: '#/components/parameters/AssignmentId'
+    get:
+      tags: [Governance]
+      operationId: listAuditEvents
+      summary: List assignment audit events with role-aware actor identity
+      responses:
+        '200': { description: Append-only audit events }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/privacy/notice:
+    get:
+      tags: [Privacy]
+      security: []
+      operationId: getPrivacyNotice
+      summary: Return the current privacy notice and retention periods
+      responses:
+        '200': { description: Privacy notice }
+  /api/privacy/acknowledgements:
+    post:
+      tags: [Privacy]
+      operationId: acknowledgePrivacyNotice
+      summary: Record the caller's privacy acknowledgement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                noticeVersion: { type: string, const: v1.0, default: v1.0 }
+      responses:
+        '201': { description: Acknowledgement recorded }
+  /api/me/data-export:
+    get:
+      tags: [Privacy]
+      operationId: exportMyData
+      summary: Return the caller's data-subject export
+      responses:
+        '200': { description: Personal data export }
+  /api/notifications:
+    get:
+      tags: [Notifications]
+      operationId: listNotifications
+      summary: List the caller's latest notifications
+      responses:
+        '200': { description: Notification inbox }
+  /api/notifications/{notificationId}:read:
+    parameters:
+      - name: notificationId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [Notifications]
+      operationId: markNotificationRead
+      summary: Mark one owned notification read or unread
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                read: { type: boolean, default: true }
+      responses:
+        '200': { description: Notification state updated }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/maintenance/run:
+    post:
+      tags: [Notifications]
+      operationId: runOwnerMaintenance
+      summary: Run reminder, auto-finalize and retention jobs for owned classrooms
+      responses:
+        '200': { description: Maintenance summary }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/instructor/classrooms/{classroomId}/summary:
+    parameters:
+      - $ref: '#/components/parameters/ClassroomId'
+    get:
+      tags: [Classrooms]
+      operationId: getInstructorClassroomSummary
+      summary: Return classroom counts and assignment progress for instructors
+      responses:
+        '200': { description: Instructor classroom summary }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: OIDC
+    demoUser:
+      type: apiKey
+      in: header
+      name: X-User-Id
+      description: Local/demo mode only; production requires the OIDC adapter.
   parameters:
     ClassroomId:
       name: classroomId
@@ -297,6 +632,16 @@ components:
       schema:
         type: string
         format: uuid
+  requestBodies:
+    ReasonRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [reason]
+            properties:
+              reason: { type: string, minLength: 5, maxLength: 2000 }
   responses:
     BadRequest:
       description: Malformed request or file
@@ -338,36 +683,32 @@ components:
     ClassroomCreate:
       type: object
       additionalProperties: false
-      required: [name, timezone, allowedEmailDomains]
+      required: [name, slug]
       properties:
         name:
           type: string
-          minLength: 1
+          minLength: 2
+          maxLength: 160
+        slug:
+          type: string
+          minLength: 2
           maxLength: 120
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
         timezone:
           type: string
+          default: Asia/Bangkok
           examples: [Asia/Bangkok]
-        allowedEmailDomains:
-          type: array
-          minItems: 1
-          uniqueItems: true
-          items:
-            type: string
-            format: hostname
     Classroom:
       allOf:
         - $ref: '#/components/schemas/ClassroomCreate'
         - type: object
-          required: [id, slug, status]
+          required: [id, slug]
           properties:
             id:
               type: string
               format: uuid
             slug:
               type: string
-            status:
-              type: string
-              enum: [ACTIVE, ARCHIVED]
     RosterImportResult:
       type: object
       required: [imported, groups]
@@ -397,44 +738,71 @@ components:
       type: object
       additionalProperties: false
       required:
-        - classroomId
         - name
-        - description
-        - artifactUrl
-        - groupMaxScore
-        - individualMaxScore
-        - groupDeadlineUtc
-        - timezone
-        - criteria
+        - deadline
       properties:
-        classroomId:
-          type: string
-          format: uuid
         name:
           type: string
-          minLength: 1
+          minLength: 2
+          maxLength: 180
         description:
           type: string
-        artifactUrl:
-          type: string
-          format: uri
+          maxLength: 4000
         groupMaxScore:
           type: number
           minimum: 0
+          default: 15
         individualMaxScore:
           type: number
           minimum: 0
-        groupDeadlineUtc:
+          default: 0
+        deadline:
           type: string
           format: date-time
-        individualDeadlineUtc:
+        individualDeadline:
           type: [string, 'null']
           format: date-time
-        timezone:
-          type: string
+        targetCoverage:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 5
+        maxWorkload:
+          type: integer
+          minimum: 1
+          maximum: 30
+          default: 8
+        minComparisons:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 3
+        scoreFloor:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0.60
+        scoreCeiling:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 1.00
+        completionThreshold:
+          type: number
+          exclusiveMinimum: 0
+          maximum: 1
+          default: 0.90
+        instructorWeight:
+          type: number
+          minimum: 0
+          default: 1.00
+        seed:
+          type: integer
+          format: int64
+          default: 20260819
         criteria:
           type: array
-          minItems: 1
+          default: []
           items:
             $ref: '#/components/schemas/CriterionInput'
     Assignment:

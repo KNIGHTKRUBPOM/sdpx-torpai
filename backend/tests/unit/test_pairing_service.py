@@ -130,3 +130,39 @@ def test_individual_feasibility_follows_group_size_and_workload_cap(
     assert result.min_coverage == minimum
     assert result.max_coverage == maximum
     assert result.workload_capped is capped
+
+
+@pytest.mark.parametrize("group_size", [3, 4, 5, 8])
+def test_individual_generation_is_balanced_and_never_contains_evaluator(group_size):
+    from tests.factories import make_classroom_students
+
+    students = make_classroom_students((group_size,))
+    first_repo = FakePairAssignmentRepository()
+    second_repo = FakePairAssignmentRepository()
+    feasibility, first = PairingService(first_repo).generate_individual_pairs(
+        "assignment-individual", "criterion-teamwork", students, seed=77
+    )
+    _, second = PairingService(second_repo).generate_individual_pairs(
+        "assignment-individual", "criterion-teamwork", students, seed=77
+    )
+
+    assert first == second
+    assert len(first) == group_size * feasibility[students[0].group_id].workload
+    assert all(item.evaluator_id not in {item.item_a_id, item.item_b_id} for item in first)
+    coverage = Counter((item.item_a_id, item.item_b_id) for item in first)
+    workload = Counter(item.evaluator_id for item in first)
+    assert max(coverage.values()) - min(coverage.values()) <= 1
+    assert set(workload.values()) == {feasibility[students[0].group_id].workload}
+
+
+def test_individual_generation_disables_groups_of_two():
+    from tests.factories import make_classroom_students
+
+    students = make_classroom_students((2,))
+    repo = FakePairAssignmentRepository()
+    feasibility, assignments = PairingService(repo).generate_individual_pairs(
+        "assignment-individual", "criterion-teamwork", students, seed=77
+    )
+
+    assert assignments == []
+    assert feasibility[students[0].group_id].enabled is False

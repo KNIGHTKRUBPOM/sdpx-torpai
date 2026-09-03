@@ -13,6 +13,9 @@ PairEval is a mobile-first university web application for collecting pairwise ev
 - Run E2E smoke tests: `cd frontend && npm run test:e2e`
 - Lint frontend: `cd frontend && npm run lint`
 - Build frontend: `cd frontend && npm run build`
+- Run full Docker stack: `docker compose up --build -d`
+- Stop Docker stack without deleting data: `docker compose down`
+- Test backend with ephemeral PostgreSQL: `docker compose -f compose.test.yaml run --build --rm backend-test`
 
 ## Conventions
 - Frontend uses TypeScript strict mode, React function components, and Tailwind CSS.

@@ -1,159 +1,118 @@
 # PairEval — Workshop และ Product Completion Gap
 
+อัปเดตล่าสุด 3 September 2026
+
 ## ข้อสรุป
 
-- Workshop มีถึง `WS-08` และ `WS-08` เป็น workshop สุดท้ายของรายวิชา
-- การทำ workshop ครบถึง WS-08 ไม่ได้แปลว่า requirement ของ PairEval ใน PRD ครบอัตโนมัติ
-- Workshop สอน feedback loop รอบงานที่ทีมพัฒนา: deploy, spec, unit test, E2E,
-  environment, integration, production และ quality loop
-- ความครบของตัวผลิตภัณฑ์ต้องวัดจาก Release Plan ใน PRD: M1 ถึง M4
-- สถานะปัจจุบันเป็น WS-03 walking skeleton และทำได้เพียงบางส่วนของ M1
+- Workshop มีถึง `WS-08`; การผ่าน workshop วัด feedback loop ของทีม ส่วนความครบของผลิตภัณฑ์วัดจาก M1–M4 ใน PRD
+- สถานะโค้ดปัจจุบันคือ **Local M4 implemented and tested**
+- ยังไม่ถือว่า Production Ready จนกว่าจะผ่าน external gates: staging/pilot, production OIDC/HTTPS,
+  manual accessibility, security/privacy sign-off,
+  monitoring alert และ backup/restore drill
 
-## แต่ละ Workshop ทำให้ได้อะไร
+## สถานะ Workshop
 
 ### WS-01 — Deploy Loop
 
-ต้องมี project context, setup ที่ทำซ้ำได้, first deploy และวัด commit-to-live latency
+มี project context, setup ที่ทำซ้ำได้, Docker scaffold และ health endpoint แล้ว
 
-สถานะ: มี context และ scaffold แต่ยังไม่มี staging URL และ deploy loop จริง
+ยังขาด staging URL, external walkthrough และหลักฐาน commit-to-live latency บน hosting จริง
 
 ### WS-02 — Spec Loop
 
-ต้องมี intent, backlog, unit briefs, architecture, ERD, wireframes และ OpenAPI contract
-
-สถานะ: มี artifact หลักแล้ว
+มี intent, backlog, unit briefs, architecture, ERD, wireframes, OpenAPI contract และ traceability แล้ว
 
 ### WS-03 — Unit Test Loop
 
-ต้องมี domain unit tests, fake/factory/fixture, coverage และพิสูจน์ fidelity ด้วยการทำให้
-business rule พังแล้ว test ต้องแดง
-
-สถานะ: Pairing/Scoring core และ test harness ทำแล้ว
+มี Pairing/Scoring domain tests, fake/factory/fixture, coverage gate และ fidelity mutation check แล้ว
 
 ### WS-04 — Acceptance Loop
 
-ต้องมี Playwright harness ครบ config, seed/cleanup, fixtures, page objects, smoke test และ
-feature tests ที่ trace กลับ acceptance criteria ได้ รวมถึงรันซ้ำ 3 รอบโดยไม่ flaky
+มี Playwright browser flows 4 กรณี ครอบ Instructor, Student Group/Individual, persistence,
+notification และ automated WCAG A/AA scan โดยปิด parallelism ที่ชน seeded account
 
-สถานะ: มี Playwright config และ smoke flow เบื้องต้น แต่ยังไม่มี page objects,
-seed/cleanup fixture, report และ coverage ตามเกณฑ์ WS-04 ครบถ้วน
+ยังขาดหลักฐาน rerun 3 รอบบน staging และ manual external-user walkthrough
 
 ### WS-05 — Environment Loop
 
-ต้องมี multi-stage non-root Dockerfile, `.dockerignore`, `compose.yaml`,
-`compose.test.yaml`, ephemeral test database และคำสั่งเดียวสำหรับเปิดระบบ
+มี multi-stage non-root Dockerfiles, `.dockerignore`, `compose.yaml`, `compose.test.yaml`,
+health checks, named volume, maintenance worker และ ephemeral PostgreSQL test service แล้ว
 
-สถานะ: ยังไม่มี artifact ชุดนี้
+ยืนยัน full stack จริงแล้ว: PostgreSQL 17/backend/frontend healthy และ maintenance worker running;
+backend integration suite บน ephemeral PostgreSQL ผ่าน 47 tests
 
 ### WS-06 — Integration Loop
 
-ต้องมี GitHub Actions CI/CD, cache, permissions, concurrency, branch protection,
-production approval และหลักฐานว่า CI แดงแล้ว block merge ได้
+มี GitHub Actions สำหรับ backend coverage ≥85%, frontend test/lint/build, Playwright/WCAG
+และ scheduled/manual Docker+k6 job พร้อม permissions เริ่มต้นแบบ read-only
 
-สถานะ: ยังไม่มี artifact ชุดนี้ และส่วน branch protection/deploy ต้องทำบน GitHub จริง
+ยังต้องเปิด repository settings จริงเพื่อทดสอบ branch protection, required checks,
+environment approval และพิสูจน์ว่า failing CI block merge ได้
 
 ### WS-07 — Production Loop
 
-ต้องมี k6 load test พร้อม threshold, baseline, performance report, structured JSON logging,
-requestId/redaction และ performance gate ใน CI
+มี structured JSON request log พร้อม requestId/duration, redaction by design, k6 workload
+200 concurrent users, NFR thresholds, CI performance gate และ operations runbook แล้ว
 
-สถานะ: มี requestId ใน API แต่ยังไม่มี structured logging, k6, baseline, report และ CI gate
+baseline 200 VU ผ่าน NFR-PERF-01..05 แล้ว; ยังขาด production monitoring integration และ alert drill
 
 ### WS-08 — Quality Loop
 
-ต้องมี full code review, refactoring plan, refactor โดย test เดิมยังเขียว, แก้ security issue
-อย่างน้อย 2 ข้อพร้อม test, security pre-check และ ADR
+ทำ Bugbot review และแก้ประเด็นสำคัญแล้ว: autosave race, submit-before-save,
+immutable revision, idempotent retry หลัง deadline, timezone และ stable validation envelope
+รวมถึงเพิ่ม negative authorization/privacy tests, spreadsheet injection defense,
+security headers และ append-only audit enforcement
 
-สถานะ: ยังไม่มี artifact ชุดนี้
+ยังต้องทำ security/privacy sign-off โดยผู้รับผิดชอบและบันทึก ADR/approval ในระบบทีมจริง
 
-## สถานะผลิตภัณฑ์เทียบ Release Plan ใน PRD
+## สถานะผลิตภัณฑ์เทียบ Release Plan
 
 ### M1 — Walking Skeleton
 
-Flow ที่ PRD กำหนดคือ login → สร้าง classroom → import CSV → สร้าง assignment →
-generate pairs → ประเมิน 1 criterion → เห็นคะแนน และต้อง deploy บน staging ให้คนนอกทีม
-ใช้จนจบเองได้
+Local flow ครบ: login → classroom → atomic roster CSV → assignment → feasibility/publish →
+persistent pairs → autosave/submit → privacy-safe score ผ่าน React, FastAPI และฐานข้อมูล
 
-สิ่งที่มีแล้ว:
-
-- หน้าประเมิน student แบบ demo
-- group pairing feasibility และ deterministic generation
-- autosave/submit/score-preview API แบบ in-memory
-- scoring core และ unit tests
-
-สิ่งที่ยังขาด:
-
-- Frontend เชื่อม Backend จริง
-- Login และ role authorization
-- Instructor UI
-- Classroom CRUD และ CSV roster import
-- Assignment/criteria CRUD และ publish flow
-- Database persistence
-- staging deployment และ E2E จาก browser ถึง database
-
-ดังนั้นสถานะปัจจุบันยังเป็น partial M1
+Definition of Done ที่ยังขาด: external staging URL และคนนอกทีมใช้ flow จนจบเอง
 
 ### M2 — Core Complete
 
-ต้องเพิ่ม group + individual evaluation, scoring/participation ครบ, reports และ CSV export
-แล้วทดลองกับห้องจริงไม่เกิน 30 คน
+Local feature ครบ: Group + Individual evaluation, separate deadline, balanced workload,
+immutable submissions, combined scoring/participation, instructor reports, CSV export
+และ integration fixture 15 คน/3 กลุ่ม
 
-สิ่งที่ยังขาดหลัก ๆ:
-
-- Individual pairing/evaluation UI และ API ครบ flow
-- Deadline, draft persistence, revisions และ re-submit จริง
-- Group/individual/pair coverage reports
-- Instructor override/finalize และ score snapshot
-- CSV export และการทดลองกับข้อมูลห้องจริง
+Definition of Done ที่ยังขาด: pilot ห้องจริงไม่เกิน 30 คนบน staging
 
 ### M3 — Trustworthy
 
-ต้องเพิ่ม anonymity controls, quality signals, audit log, override และ appeals พร้อมผ่าน
-security/privacy review
+Local feature ครบ: privacy notice/acknowledgement, k-anonymity, data-subject export,
+QS-01..07, exclusion/override พร้อมเหตุผล, appeals, immutable final snapshot,
+reopen revision, role-aware audit identity และ DB-enforced append-only audit
 
-สิ่งที่ยังขาดหลัก ๆ:
-
-- k-anonymity และ negative privacy tests
-- Quality flags และ report
-- Append-only audit log
-- Appeals workflow
-- Security/privacy review
+Gate ที่ยังขาด: production security/privacy review และ production OIDC/domain policy
 
 ### M4 — Production Ready
 
-ต้องเพิ่ม notifications, XLSX export, WCAG 2.2 AA, load test ตาม NFR และรองรับห้อง
-200 คนจริง
+Local feature ครบ: XLSX 4 sheets + metadata, notifications, reminder/auto-finalize/retention worker,
+automated WCAG scan, k6 scenario, CI gate, security headers และ operations runbook
 
-สิ่งที่ยังขาดหลัก ๆ:
+Gate ที่ยังขาด: manual screen-reader review, approved HTTPS infrastructure, secret manager, monitoring alerts
+และ backup restore drill
 
-- Notification jobs
-- XLSX 4 sheets และ metadata
-- Automated/manual accessibility verification
-- k6 performance gate, observability และ operational readiness
-- Production infrastructure, HTTPS, secret manager, backup/restore และ monitoring
+## ค่า PRD ที่ยืนยันแล้ว
 
-## ความหมายของคำว่า “ทำให้จบ”
+ใช้ค่า default ตาม `project-ideas/pairwise_evaluation_prd.md`:
 
-- ถ้าหมายถึงงานที่สั่งเดิม: จบที่ WS-03 และปัจจุบันทำส่วนหลักแล้ว
-- ถ้าหมายถึง workshop ทั้งวิชา: ต้องทำต่อ WS-04 ถึง WS-08
-- ถ้าหมายถึงระบบที่คนใช้ flow หลักได้จริง: ต้องปิด M1 ก่อน
-- ถ้าหมายถึงระบบวิชาที่ใช้ประเมินและออกรายงานได้จริง: ต้องปิด M2
-- ถ้าหมายถึงทุกฟังก์ชันใน PRD และ production-ready: ต้องปิด M1 ถึง M4
+- score floor/ceiling = `0.60/1.00`
+- completion threshold = `0.90`
+- minimum comparisons = `3`
+- instructor weight = `1.00`
+- auto-finalize = 14 วันหลัง deadline
+- co-teacher เห็น evaluator แบบ pseudonym; Owner เท่านั้นที่ export identity ได้หลังยืนยันชัดเจน
+- retention = time-on-task 1 ปี และ identity/evaluation linkage 2 academic years
 
-## ลำดับลงมือที่เหมาะสม
+## ลำดับปิด External Gates
 
-1. ปิด M1 ให้ใช้งานครบวงจรด้วย PostgreSQL และ frontend-backend integration
-2. ทำ WS-04 E2E harness ครอบ flow M1
-3. ปิด M2: individual evaluation, reports, finalize และ export
-4. ทำ WS-05 Docker และ WS-06 CI/CD
-5. ปิด M3: anonymity, audit, quality signals, appeals และ security
-6. ทำ WS-07 performance/observability
-7. ทำ WS-08 refactor/security/ADR
-8. ปิด M4 และ deploy production/staging พร้อมหลักฐานตามเกณฑ์
-
-## ข้อจำกัดที่ต้องตัดสินใจก่อน Production
-
-PRD ยังมี open questions 8 ข้อ เช่น participation multiplier, การ auto-finalize,
-นักศึกษาที่ถอนวิชา, privacy ของ time-on-task และสิทธิ์ co-teacher การทำ M1/M2 เริ่มได้โดยใช้
-ค่า default ใน PRD แต่การประกาศว่า M3/M4 เสร็จต้องให้ผู้มีอำนาจยืนยันคำตอบเหล่านี้ รวมถึง
-Google OIDC domain, cloud ที่อนุมัติ และนโยบายเก็บข้อมูล
+1. Deploy staging ด้วย Google OIDC/allowed domain/HTTPS จากบัญชีและ cloud ที่อนุมัติ
+2. ทำ external M1 walkthrough และ M2 pilot ≤30 คน
+3. เปิด GitHub required checks/environment approval แล้วพิสูจน์ CI block merge
+4. ทำ manual screen-reader, security/privacy sign-off, alert drill และ backup restore drill

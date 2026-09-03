@@ -1,0 +1,41 @@
+name: paireval-test
+
+services:
+  db-test:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: paireval_test
+      POSTGRES_USER: paireval_test
+      POSTGRES_PASSWORD: paireval_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paireval_test -d paireval_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  backend-test:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      AUTH_MODE: demo
+      DATABASE_URL: postgresql+psycopg://paireval_test:paireval_test@db-test:5432/paireval_test
+      COVERAGE_FILE: /tmp/.coverage
+      PYTEST_ADDOPTS: -p no:cacheprovider
+    depends_on:
+      db-test:
+        condition: service_healthy
+    command: ["python", "-m", "pytest", "-q", "--cov=src", "--cov-report=term-missing"]
+
+  frontend-test:
+    image: node:24-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend_test_modules:/app/node_modules
+    command: ["sh", "-lc", "npm ci && npm test && npm run lint && npm run build"]
+
+volumes:
+  frontend_test_modules:

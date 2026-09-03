@@ -265,6 +265,113 @@ class PairingService:
             "Feasibility constraints passed, but no balanced evaluator allocation was found."
         )
 
+    def generate_individual_pairs(
+        self,
+        assignment_id: str,
+        criterion_id: str,
+        students: list[Student],
+        seed: int,
+        max_workload: int = 8,
+        generation: int = 1,
+    ) -> tuple[dict[str, IndividualFeasibility], list[PairAssignment]]:
+        """Generate balanced within-group pairs while excluding the evaluator themself."""
+        groups = self._group_members(students)
+        feasibility_by_group: dict[str, IndividualFeasibility] = {}
+        assignments: list[PairAssignment] = []
+        for group_id, members in sorted(groups.items()):
+            feasibility = self.solve_individual_feasibility(len(members), max_workload=max_workload)
+            feasibility_by_group[group_id] = feasibility
+            if not feasibility.enabled:
+                continue
+            pairs = list(combinations(sorted(member.id for member in members), 2))
+            total = len(members) * feasibility.workload
+            base_coverage, extra_count = divmod(total, len(pairs))
+            selected: list[tuple[Student, tuple[str, str]]] | None = None
+            for attempt in range(128):
+                rng = Random(f"individual:{seed}:{assignment_id}:{criterion_id}:{group_id}:{attempt}")
+                extra_pairs = pairs.copy()
+                rng.shuffle(extra_pairs)
+                demand = {
+                    pair: base_coverage + int(pair in set(extra_pairs[:extra_count]))
+                    for pair in pairs
+                }
+                selected = self._flow_allocate_individual(members, pairs, feasibility.workload, demand, rng)
+                if selected is not None:
+                    break
+            if selected is None:
+                raise PairingNotFeasibleError(
+                    f"No balanced individual allocation was found for group {group_id}."
+                )
+            display_rng = Random(f"individual-display:{seed}:{assignment_id}:{criterion_id}:{group_id}")
+            assignments.extend(
+                PairAssignment(
+                    id=str(
+                        uuid5(
+                            NAMESPACE_URL,
+                            ":".join(
+                                (
+                                    "individual",
+                                    assignment_id,
+                                    criterion_id,
+                                    student.id,
+                                    pair[0],
+                                    pair[1],
+                                    str(generation),
+                                )
+                            ),
+                        )
+                    ),
+                    assignment_id=assignment_id,
+                    criterion_id=criterion_id,
+                    evaluator_id=student.id,
+                    item_a_id=pair[0],
+                    item_b_id=pair[1],
+                    display_left_item_id=pair[display_rng.randrange(2)],
+                    generation=generation,
+                )
+                for student, pair in sorted(selected, key=lambda value: (value[0].id, value[1]))
+            )
+        self.repository.replace_for_criterion(assignment_id, criterion_id, assignments)
+        return feasibility_by_group, assignments
+
+    @staticmethod
+    def _flow_allocate_individual(
+        students: list[Student],
+        pairs: list[tuple[str, str]],
+        workload: int,
+        demand: dict[tuple[str, str], int],
+        rng: Random,
+    ) -> list[tuple[Student, tuple[str, str]]] | None:
+        shuffled_students = students.copy()
+        shuffled_pairs = pairs.copy()
+        rng.shuffle(shuffled_students)
+        rng.shuffle(shuffled_pairs)
+        source = 0
+        student_offset = 1
+        pair_offset = student_offset + len(shuffled_students)
+        sink = pair_offset + len(shuffled_pairs)
+        network = _FlowNetwork(sink + 1)
+        for index in range(len(shuffled_students)):
+            network.add_edge(source, student_offset + index, workload)
+        for index, pair in enumerate(shuffled_pairs):
+            network.add_edge(pair_offset + index, sink, demand[pair])
+        pair_indexes = {pair: index for index, pair in enumerate(shuffled_pairs)}
+        assignment_edges: list[tuple[Student, tuple[str, str], _FlowEdge]] = []
+        for student_index, student in enumerate(shuffled_students):
+            eligible = [pair for pair in shuffled_pairs if student.id not in pair]
+            rng.shuffle(eligible)
+            for pair in eligible:
+                edge = network.add_edge(
+                    student_offset + student_index,
+                    pair_offset + pair_indexes[pair],
+                    1,
+                )
+                assignment_edges.append((student, pair, edge))
+        expected = len(students) * workload
+        if network.max_flow(source, sink) != expected:
+            return None
+        return [(student, pair) for student, pair, edge in assignment_edges if edge.capacity == 0]
+
     @staticmethod
     def _flow_allocate(
         students: list[Student],
