@@ -15,7 +15,7 @@ The development database uses a named volume. The test database in `compose.test
 ## Verification
 
 ```bash
-docker compose -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e
+docker compose -p unilib-test -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e
 ```
 
 This command runs backend tests, frontend tests, and Playwright against the complete stack. A failed prerequisite test prevents E2E from starting and produces a non-zero Compose exit code.

@@ -16,10 +16,13 @@ docker compose up --build
 รัน test suite ทั้งหมดด้วย:
 
 ```bash
-docker compose -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e
+docker compose -p unilib-test -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e
 ```
 
 รายละเอียด environment, architecture และ contract อยู่ใน `docs/setup-steps.md`, `docs/architecture.md`, `docs/erd.md` และ `docs/openapi.yaml`
+
+- แผนพัฒนาต่อ: [`docs/future-work.md`](docs/future-work.md)
+- สคริปต์นำเสนอและ unit-test demo: [`docs/presentation-script.md`](docs/presentation-script.md)
 
 โปรเจกต์เว็บแอปพลิเคชัน Full-stack พัฒนาโดยทีม **ต่อไป** 
 

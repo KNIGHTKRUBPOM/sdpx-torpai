@@ -5,7 +5,7 @@ UniLib is a mobile-first campus library application. Students register, search, 
 
 ## Setup & Commands
 - Full stack: `docker compose up --build`
-- All tests: `docker compose -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e`
+- All tests: `docker compose -p unilib-test -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e`
 - Backend: `cd backend && python -m uvicorn main:app --reload`
 - Backend tests: `cd backend && python -m pytest -q`
 - Frontend: `cd frontend && npm ci && npm run dev`
