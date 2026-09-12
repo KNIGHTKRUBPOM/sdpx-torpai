@@ -1,6 +1,4 @@
 .env
-.env.*
-!.env.example
 .env.local
 .env.production
 node_modules/
@@ -10,16 +8,7 @@ __pycache__/
 .venv/
 .next/
 dist/
-/coverage/
-frontend/coverage/
-backend/coverage/
-htmlcov/
 playwright-report/
 test-results/
 **/playwright-report/
 **/test-results/
-*.log
-*.pyc
-.pytest_cache/
-.coverage
-.DS_Store
