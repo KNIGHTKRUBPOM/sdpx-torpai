@@ -32,7 +32,10 @@ class Settings:
 
 
 def get_settings() -> Settings:
-    origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")
+    origins = os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    )
     return Settings(
         app_env=os.getenv("APP_ENV", "development"),
         database_url=_database_url(),

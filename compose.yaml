@@ -20,7 +20,7 @@ services:
       APP_ENV: development
       DATABASE_URL: postgresql+psycopg://unilib:${POSTGRES_PASSWORD:-local-development-only}@db:5432/unilib
       JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-me}
-      ALLOWED_ORIGINS: http://localhost:5173
+      ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
       SEED_DEMO_DATA: "true"
       LIBRARIAN_EMAIL: ${LIBRARIAN_EMAIL:-librarian@example.com}
       LIBRARIAN_PASSWORD: ${LIBRARIAN_PASSWORD:-Library123!}
