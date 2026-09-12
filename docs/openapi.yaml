@@ -1,0 +1,180 @@
+openapi: 3.1.0
+info:
+  title: UniLib API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+paths:
+  /api/health:
+    get:
+      operationId: health
+      responses:
+        '200': { description: Healthy }
+  /api/auth/register:
+    post:
+      operationId: registerStudent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201': { description: Registered, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/auth/login:
+    post:
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200': { description: Authenticated, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/auth/me:
+    get:
+      operationId: currentUser
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Current user, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/books:
+    get:
+      operationId: listBooks
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string, enum: [available, borrowed] } }
+      responses:
+        '200': { description: Books, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Book' } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      operationId: addBook
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookCreate' }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Book' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/loans:
+    post:
+      operationId: borrowBook
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [isbn], properties: { isbn: { type: string } } }
+      responses:
+        '201': { description: Borrowed, content: { application/json: { schema: { $ref: '#/components/schemas/Loan' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    get:
+      operationId: listAllLoans
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: active_only, in: query, schema: { type: boolean, default: false } }
+      responses:
+        '200': { description: All loans for librarians, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Loan' } } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/loans/me:
+    get:
+      operationId: listMyLoans
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Current user's active loans, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Loan' } } } } }
+  /api/loans/{loan_id}/return:
+    post:
+      operationId: returnLoan
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: loan_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Returned, content: { application/json: { schema: { $ref: '#/components/schemas/Loan' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [student_id, name, email, password]
+      properties:
+        student_id: { type: string, minLength: 5, maxLength: 30 }
+        name: { type: string, minLength: 2, maxLength: 120 }
+        email: { type: string, format: email }
+        password: { type: string, format: password, minLength: 8, maxLength: 128 }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+    User:
+      type: object
+      required: [id, name, email, role]
+      properties:
+        id: { type: string, format: uuid }
+        student_id: { type: [string, 'null'] }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [student, librarian] }
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, user]
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, const: bearer }
+        user: { $ref: '#/components/schemas/User' }
+    BookCreate:
+      type: object
+      required: [isbn, title, author, category]
+      properties:
+        isbn: { type: string }
+        title: { type: string }
+        author: { type: string }
+        category: { type: string }
+    Book:
+      allOf:
+        - { $ref: '#/components/schemas/BookCreate' }
+        - type: object
+          required: [id, status]
+          properties:
+            id: { type: string, format: uuid }
+            status: { type: string, enum: [available, borrowed] }
+    Loan:
+      type: object
+      required: [id, borrowed_at, due_at, book, user]
+      properties:
+        id: { type: string, format: uuid }
+        borrowed_at: { type: string, format: date-time }
+        due_at: { type: string, format: date-time }
+        returned_at: { type: [string, 'null'], format: date-time }
+        book: { $ref: '#/components/schemas/Book' }
+        user: { $ref: '#/components/schemas/User' }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+  responses:
+    Unauthorized: { description: Authentication required, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Forbidden: { description: Insufficient permission, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    NotFound: { description: Resource not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Conflict: { description: Business rule conflict, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    ValidationError: { description: Invalid request, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }

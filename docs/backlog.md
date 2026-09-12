@@ -1,5 +1,19 @@
 # Revised Product Backlog & User Stories (TorPai - UniLib)
 
+## WS1–5 GitHub backlog
+
+- [#8 Student registration](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/8)
+- [#9 Login and logout](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/9)
+- [#10 Search the book catalog](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/10)
+- [#11 Filter catalog results](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/11)
+- [#12 Librarian adds a book](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/12)
+- [#13 Student borrows a book](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/13)
+- [#14 Return a book](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/14)
+- [#15 View my active loans](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/15)
+- [#16 Librarian manages all loans](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/16)
+
+Each issue contains binary acceptance criteria and maps directly to the API operations in `docs/openapi.yaml` and the automated tests in `backend/tests` / `frontend/tests`.
+
 ## 📌 Context & Revised User Stories (From Presentation Feedback)
 
 ตาม Feedback จากการนำเสนอระบบยืม-คืนหนังสือดิจิทัล (UniLib) ของทีม **ต่อไป (TorPai)** ได้ทำการปรับปรุง User Stories และ Acceptance Criteria ให้ชัดเจน รัดกุม และสามารถวัดผลด้วย Unit Tests & E2E Tests ได้ดังนี้:

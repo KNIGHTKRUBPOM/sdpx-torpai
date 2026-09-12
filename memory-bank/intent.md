@@ -9,6 +9,8 @@ Enable university students and staff to search, borrow, and return library books
 - **Value:** เพิ่มความสะดวกและรวดเร็วในการยืม-คืนหนังสือ สามารถค้นหา ค้นคืน และตรวจสอบสถานะหนังสือได้ทันที ลดขั้นตอนงานเอกสาร และลดปัญหาการยืมหนังสือซ้ำซ้อน
 
 ## Success Criteria
+- [x] นักศึกษาสมัครสมาชิกและเข้าสู่ระบบด้วย email/password ได้
+- [x] บรรณารักษ์เพิ่มหนังสือและดูแลรายการยืมได้ตาม role
 - [ ] ผู้ใช้สามารถค้นหาหนังสือ กรองตามหมวดหมู่ และเช็คสถานะการยืม (Available/Borrowed) ได้แบบเรียลไทม์
 - [ ] ผู้ใช้สามารถทำรายการยืมและคืนหนังสือผ่านระบบออนไลน์ได้สำเร็จโดยระบุรหัสนักศึกษา และ ISBN
 - [ ] ระบบ Backend (FastAPI) สามารถประมวลผลคำขอยืม-คืน และส่งตอบกลับ REST API ภายในระยะเวลา < 500ms
@@ -26,4 +28,4 @@ Enable university students and staff to search, borrow, and return library books
 - ระบบส่งอีเมลแจ้งเตือนภายนอก (Third-party Email/SMS Notification System)
 
 ## Status
-In Progress — WS-02 ยึดข้อมูลตาม agent.md
+WS1–5 implementation — REST integration, PostgreSQL schema, automated tests, Docker, and deployment descriptors are available.

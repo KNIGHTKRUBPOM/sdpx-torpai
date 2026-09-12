@@ -1,5 +1,19 @@
 # Test Plan
 
+## WS1–5 automated verification
+
+- Backend unit/integration: `cd backend && python -m pytest -q --cov=src`
+- Frontend component: `cd frontend && npm test`
+- Frontend lint/build: `cd frontend && npm run lint && npm run build`
+- Full E2E stack: `docker compose -p unilib-test -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e`
+- Flaky check: run Playwright with `--repeat-each=3`.
+
+Implemented coverage includes registration/login, password hashing, role authorization, ISBN normalization/duplicates, search, 14-day due dates, five-book limit, double-borrow protection, ownership on return, API error shape, protected navigation, and the student/librarian E2E journeys.
+
+### Fidelity check (WS-03)
+
+Protected rule: an unavailable book must not be borrowed. Temporarily bypassing the `book.status != "available"` guard makes `test_borrow_rejects_already_borrowed` fail because the database prevents a second active loan. The production guard is restored after the check; this proves the harness detects removal of the rule.
+
 เอกสารแผนการทดสอบระบบยืม-คืนหนังสือ **SDPX - Torpai** ซึ่งรวบรวมข้อกำหนดมาจาก **Key Business Rules** ใน `memory-bank/units/*/unit-brief.md` ทุกข้อ
 
 ---
@@ -33,8 +47,11 @@
 
 ---
 
-## กฎที่ยังไม่มี test (ยอมรับไว้ชั่วคราว)
+## สถานะ coverage ปัจจุบัน
 
-- **[ระบบกรองค้นหาแบบ Case-Insensitive ใน BookCatalogService]** — อยู่ระหว่างจัดเตรียม In-Memory Query Engine ใน WS-03
-- **[ระบบดึงรายการหนังสือของผู้ใช้ (UserBooksService)]** — จะทำ Unit Test เพิ่มเติมเมื่อเชื่อมต่อ User Session / Auth Service ใน WS-03
-- **[HTTP Status Code & Pydantic Schema Validation ใน APIGateway]** — จะทำ Integration Test ร่วมกับ FastAPI TestClient ใน WS-04
+- Case-insensitive search มี unit test ใน `test_search_is_case_insensitive`
+- รายการยืมของผู้ใช้และการคืนมี service/API integration/E2E coverage
+- HTTP authorization และ error shape มี FastAPI TestClient coverage
+- Backend suite ปัจจุบันมี 22 tests และ line coverage 91% เมื่อรันใน Docker test compose
+
+งานทดสอบลำดับถัดไปคือ PostgreSQL concurrency, migration/restore, OpenAPI contract, JWT expiry/rotation, accessibility และ mobile E2E ตาม `docs/future-work.md`
