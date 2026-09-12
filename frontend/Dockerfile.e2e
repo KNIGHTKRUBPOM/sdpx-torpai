@@ -1,0 +1,6 @@
+FROM mcr.microsoft.com/playwright:v1.62.1-noble
+WORKDIR /workspace/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+CMD ["npx", "playwright", "test"]

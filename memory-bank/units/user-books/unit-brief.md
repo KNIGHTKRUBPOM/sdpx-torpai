@@ -21,7 +21,7 @@
 - รายการหนังสือของผู้ใช้ต้องแสดงวันกำหนดส่งคืน (Due Date) อย่างชัดเจนเสมอ
 
 ## Key Stories
-- N/A (Will link to GitHub Issues when created)
+- [#15 My active loans](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/15), [#16 Librarian manages loans](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/16)
 
 ## Bolt Type
 [ ] DDD Construction — ถ้า domain logic ซับซ้อน

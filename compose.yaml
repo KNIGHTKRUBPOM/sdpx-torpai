@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: unilib
+      POSTGRES_USER: unilib
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+    volumes:
+      - unilib-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unilib -d unilib"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://unilib:${POSTGRES_PASSWORD:-local-development-only}@db:5432/unilib
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-me}
+      ALLOWED_ORIGINS: http://localhost:5173
+      SEED_DEMO_DATA: "true"
+      LIBRARIAN_EMAIL: ${LIBRARIAN_EMAIL:-librarian@example.com}
+      LIBRARIAN_PASSWORD: ${LIBRARIAN_PASSWORD:-Library123!}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+volumes:
+  unilib-data:

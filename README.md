@@ -1,5 +1,26 @@
 # SDPX - Torpai (ต่อไป) 🚀
 
+> UniLib เวอร์ชัน WS1–5 รองรับสมัครสมาชิก/Login, ค้นหา, เพิ่ม, ยืม, คืน และติดตามรายการผ่าน React + FastAPI + PostgreSQL แล้ว
+
+## Quick Start ด้วย Docker
+
+```bash
+docker compose up --build
+```
+
+- Web: http://localhost:5173
+- API docs: http://localhost:8000/docs
+- Librarian demo: `librarian@example.com` / `Library123!` (ใช้เฉพาะ local)
+- นักศึกษาสมัครบัญชีใหม่ได้จากหน้า `/register`
+
+รัน test suite ทั้งหมดด้วย:
+
+```bash
+docker compose -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e
+```
+
+รายละเอียด environment, architecture และ contract อยู่ใน `docs/setup-steps.md`, `docs/architecture.md`, `docs/erd.md` และ `docs/openapi.yaml`
+
 โปรเจกต์เว็บแอปพลิเคชัน Full-stack พัฒนาโดยทีม **ต่อไป** 
 
 ---

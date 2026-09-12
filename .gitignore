@@ -12,3 +12,7 @@ playwright-report/
 test-results/
 **/playwright-report/
 **/test-results/
+/SDPX-AI-main/
+*.db
+backend/.coverage
+backend/htmlcov/
