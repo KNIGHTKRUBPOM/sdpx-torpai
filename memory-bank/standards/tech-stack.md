@@ -2,7 +2,7 @@
 
 ## Decision Summary
 ทีม: ต่อไป
-Domain: [ชื่อ domain]
+Domain: ระบบยืม-คืนหนังสือ
 Date: 210769
 
 ## Frontend
@@ -17,11 +17,12 @@ Date: 210769
 - Rationale: เหมาะสำหรับ AI และ REST API
 
 ## Database
-- [PostgreSQL]
+- PostgreSQL 17 + SQLAlchemy 2 + Alembic
 - Rationale: รองรับข้อมูลจำนวนมาก
 
 ## Deployment
-- Platform: [Vercel / Render]
+- Platform: Vercel (frontend) + Render (FastAPI/PostgreSQL)
+- Auto-deploy branch: `develop`
 - Staging URL: [จะเพิ่มหลัง deploy]
 
 ## AI Tools

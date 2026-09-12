@@ -1,0 +1,32 @@
+databases:
+  - name: unilib-db
+    databaseName: unilib
+    user: unilib
+    plan: free
+services:
+  - type: web
+    name: unilib-api
+    runtime: docker
+    plan: free
+    branch: develop
+    dockerContext: .
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: unilib-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: LIBRARIAN_EMAIL
+        sync: false
+      - key: LIBRARIAN_PASSWORD
+        sync: false
+      - key: SEED_DEMO_DATA
+        value: "true"

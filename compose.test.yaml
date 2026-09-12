@@ -1,0 +1,53 @@
+services:
+  test-db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: unilib_test
+      POSTGRES_USER: unilib
+      POSTGRES_PASSWORD: test-only
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unilib -d unilib_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment: &test-env
+      APP_ENV: test
+      DATABASE_URL: postgresql+psycopg://unilib:test-only@test-db:5432/unilib_test
+      JWT_SECRET: test-jwt-secret
+      ALLOWED_ORIGINS: http://frontend:8080
+      SEED_DEMO_DATA: "true"
+      LIBRARIAN_EMAIL: librarian@example.com
+      LIBRARIAN_PASSWORD: Library123!
+      E2E_SEED_TOKEN: e2e-local-token
+    depends_on:
+      test-db:
+        condition: service_healthy
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+  e2e:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.e2e
+    environment:
+      <<: *test-env
+      PLAYWRIGHT_EXTERNAL_SERVER: "true"
+      PLAYWRIGHT_BASE_URL: http://frontend:8080
+      E2E_API_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
