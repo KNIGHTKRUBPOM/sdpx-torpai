@@ -73,6 +73,39 @@ def test_librarian_can_add_book_and_student_cannot():
     app.dependency_overrides.clear()
 
 
+def test_only_librarian_can_delete_an_available_book():
+    client, session = make_client()
+    with client:
+        student = client.post("/api/auth/register", json={"student_id": "65010001", "name": "Ada", "email": "ada@uni.ac.th", "password": "Password123!"})
+        student_headers = {"Authorization": f"Bearer {student.json()['access_token']}"}
+        forbidden = client.delete("/api/books/book-1", headers=student_headers)
+        assert forbidden.status_code == 403
+
+        librarian_headers = login(client, "library@uni.ac.th", "Library123!")
+        deleted = client.delete("/api/books/book-1", headers=librarian_headers)
+        assert deleted.status_code == 204
+        assert client.get("/api/books", headers=librarian_headers).json() == []
+        missing = client.delete("/api/books/book-1", headers=librarian_headers)
+        assert missing.status_code == 404
+        assert missing.json()["error"]["code"] == "BOOK_NOT_FOUND"
+    session.close()
+    app.dependency_overrides.clear()
+
+
+def test_librarian_cannot_delete_a_book_with_an_active_loan():
+    client, session = make_client()
+    with client:
+        student = client.post("/api/auth/register", json={"student_id": "65010001", "name": "Ada", "email": "ada@uni.ac.th", "password": "Password123!"})
+        student_headers = {"Authorization": f"Bearer {student.json()['access_token']}"}
+        assert client.post("/api/loans", json={"isbn": "9780262046305"}, headers=student_headers).status_code == 201
+        librarian_headers = login(client, "library@uni.ac.th", "Library123!")
+        response = client.delete("/api/books/book-1", headers=librarian_headers)
+        assert response.status_code == 409
+        assert response.json()["error"]["code"] == "BOOK_HAS_ACTIVE_LOAN"
+    session.close()
+    app.dependency_overrides.clear()
+
+
 def test_api_requires_auth_and_uses_consistent_error_shape():
     client, session = make_client()
     with client:

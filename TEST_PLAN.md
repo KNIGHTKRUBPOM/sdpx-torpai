@@ -8,7 +8,9 @@
 - Full E2E stack: `docker compose -p unilib-test -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e`
 - Flaky check: run Playwright with `--repeat-each=3`.
 
-Implemented coverage includes registration/login, password hashing, role authorization, ISBN normalization/duplicates, search, 14-day due dates, five-book limit, double-borrow protection, ownership on return, API error shape, protected navigation, and the student/librarian E2E journeys.
+Implemented coverage includes registration/login, password hashing, role authorization, ISBN normalization/duplicates, safe book deletion, search, 14-day due dates, five-book limit, double-borrow protection, ownership on return, API error shape, protected navigation, and the student/librarian E2E journeys.
+
+Book deletion coverage verifies that only librarians can delete, active loans block deletion, deleted books disappear from catalog search, historical data remains, and adding the same ISBN restores the archived record.
 
 ### Fidelity check (WS-03)
 
@@ -52,6 +54,6 @@ Protected rule: an unavailable book must not be borrowed. Temporarily bypassing 
 - Case-insensitive search มี unit test ใน `test_search_is_case_insensitive`
 - รายการยืมของผู้ใช้และการคืนมี service/API integration/E2E coverage
 - HTTP authorization และ error shape มี FastAPI TestClient coverage
-- Backend suite ปัจจุบันมี 22 tests และ line coverage 91% เมื่อรันใน Docker test compose
+- Backend suite ปัจจุบันมี 28 tests และ line coverage 91%
 
 งานทดสอบลำดับถัดไปคือ PostgreSQL concurrency, migration/restore, OpenAPI contract, JWT expiry/rotation, accessibility และ mobile E2E ตาม `docs/future-work.md`

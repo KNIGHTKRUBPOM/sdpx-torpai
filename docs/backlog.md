@@ -11,8 +11,9 @@
 - [#14 Return a book](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/14)
 - [#15 View my active loans](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/15)
 - [#16 Librarian manages all loans](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/16)
+- [#19 Librarian removes an available book](https://github.com/KNIGHTKRUBPOM/sdpx-torpai/issues/19)
 
-Each issue contains binary acceptance criteria and maps directly to the API operations in `docs/openapi.yaml` and the automated tests in `backend/tests` / `frontend/tests`.
+Each story contains binary acceptance criteria and maps directly to the API operations in `docs/openapi.yaml` and the automated tests in `backend/tests` / `frontend/tests`. The complete traceability map is in [`requirements.md`](requirements.md).
 
 ## 📌 Context & Revised User Stories (From Presentation Feedback)
 
