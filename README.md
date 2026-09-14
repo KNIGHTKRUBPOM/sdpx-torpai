@@ -21,6 +21,8 @@ docker compose -p unilib-test -f compose.test.yaml up --build --abort-on-contain
 
 รายละเอียด environment, architecture และ contract อยู่ใน `docs/setup-steps.md`, `docs/architecture.md`, `docs/erd.md` และ `docs/openapi.yaml`
 
+- WS2 requirements และ traceability: [`docs/requirements.md`](docs/requirements.md)
+- WS2 pre-presentation runbook: [`docs/ws2-pre-presentation.md`](docs/ws2-pre-presentation.md)
 - แผนพัฒนาต่อ: [`docs/future-work.md`](docs/future-work.md)
 - สคริปต์นำเสนอและ unit-test demo: [`docs/presentation-script.md`](docs/presentation-script.md)
 
@@ -43,7 +45,7 @@ docker compose -p unilib-test -f compose.test.yaml up --build --abort-on-contain
 - **Server:** Uvicorn
 - **Validation:** Pydantic
 
-### **Database (Planned)**
+### **Database**
 - PostgreSQL
 
 ---
@@ -99,12 +101,17 @@ sdpx-torpai/
    pip install -r ../requirements.txt
    ```
 
-5. เริ่มต้นรันเซิร์ฟเวอร์ Backend:
+5. อัปเดตโครงสร้างฐานข้อมูล:
+   ```bash
+   alembic upgrade head
+   ```
+
+6. เริ่มต้นรันเซิร์ฟเวอร์ Backend:
    ```bash
    uvicorn main:app --reload
    ```
 
-6. เข้าใช้งาน API และ Interactive Documentation:
+7. เข้าใช้งาน API และ Interactive Documentation:
    - API Endpoint: `http://localhost:8000`
    - Swagger UI Documentation: `http://localhost:8000/docs`
    - ReDoc Documentation: `http://localhost:8000/redoc`
