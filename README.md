@@ -101,17 +101,35 @@ sdpx-torpai/
    pip install -r ../requirements.txt
    ```
 
-5. อัปเดตโครงสร้างฐานข้อมูล:
+5. เลือกฐานข้อมูล:
+
+   **Local SQLite (ค่าเริ่มต้น ไม่ต้องเปิด Docker):**
+
+   ```bash
+   unset DATABASE_URL
+   ```
+
+   คำสั่ง Alembic ในขั้นถัดไปจะสร้างไฟล์ `backend/unilib.db` ให้อัตโนมัติ
+
+   **PostgreSQL:**
+
+   ```bash
+   export DATABASE_URL="postgresql+psycopg://unilib:your-password@localhost:5432/unilib"
+   ```
+
+   เมื่อใช้ `docker compose` ไม่ต้องตั้งค่านี้เอง เพราะ `compose.yaml` ส่ง PostgreSQL URL ให้ backend container อัตโนมัติ
+
+6. อัปเดตโครงสร้างฐานข้อมูลที่เลือก:
    ```bash
    alembic upgrade head
    ```
 
-6. เริ่มต้นรันเซิร์ฟเวอร์ Backend:
+7. เริ่มต้นรันเซิร์ฟเวอร์ Backend:
    ```bash
    uvicorn main:app --reload
    ```
 
-7. เข้าใช้งาน API และ Interactive Documentation:
+8. เข้าใช้งาน API และ Interactive Documentation:
    - API Endpoint: `http://localhost:8000`
    - Swagger UI Documentation: `http://localhost:8000/docs`
    - ReDoc Documentation: `http://localhost:8000/redoc`
