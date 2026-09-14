@@ -1,3 +1,10 @@
+import os
+
+os.environ["APP_ENV"] = "test"
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["SEED_DEMO_DATA"] = "false"
+os.environ["E2E_SEED_TOKEN"] = "pytest-seed-token"
+
 import pytest
 from tests.factories import make_book, make_user
 from tests.fakes.fake_book_repo import FakeBookRepository

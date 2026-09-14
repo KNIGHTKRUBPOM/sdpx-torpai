@@ -14,7 +14,9 @@ class LoanService:
         self.clock = clock or (lambda: datetime.now(timezone.utc))
 
     def borrow(self, user: User, isbn: str) -> Loan:
-        book = self.session.scalar(select(Book).where(Book.isbn == isbn).with_for_update())
+        book = self.session.scalar(
+            select(Book).where(Book.isbn == isbn, Book.deleted_at.is_(None)).with_for_update()
+        )
         if book is None:
             raise not_found("BOOK_NOT_FOUND", "ไม่พบหนังสือจาก ISBN นี้")
         if book.status != "available":

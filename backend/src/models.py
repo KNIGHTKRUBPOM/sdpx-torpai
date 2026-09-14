@@ -35,6 +35,7 @@ class Book(Base):
     category: Mapped[str] = mapped_column(String(100), index=True)
     status: Mapped[str] = mapped_column(String(20), default="available", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
 
     loans: Mapped[list["Loan"]] = relationship(back_populates="book")
 

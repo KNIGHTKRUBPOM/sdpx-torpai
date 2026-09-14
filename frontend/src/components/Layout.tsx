@@ -11,7 +11,7 @@ export function Layout() {
       <nav aria-label="เมนูหลัก">
         <NavLink to="/catalog">ค้นหาหนังสือ</NavLink>
         {user?.role === 'student' && <NavLink to="/my-books">หนังสือของฉัน</NavLink>}
-        {user?.role === 'librarian' && <NavLink to="/admin/books">เพิ่มหนังสือ</NavLink>}
+        {user?.role === 'librarian' && <NavLink to="/admin/books">จัดการหนังสือ</NavLink>}
         {user?.role === 'librarian' && <NavLink to="/admin/loans">รายการยืม</NavLink>}
       </nav>
       <div className="account"><span><strong>{user?.name}</strong><small>{user?.role === 'librarian' ? 'บรรณารักษ์' : user?.student_id}</small></span><button className="button ghost" onClick={leave}>ออกจากระบบ</button></div>

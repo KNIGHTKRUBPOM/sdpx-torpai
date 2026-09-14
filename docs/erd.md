@@ -21,6 +21,7 @@ erDiagram
     string category
     string status
     datetime created_at
+    datetime deleted_at
   }
   LOAN {
     uuid id PK
@@ -32,4 +33,4 @@ erDiagram
   }
 ```
 
-Only one loan with `returned_at IS NULL` may exist for a book. `student_id` is required for students and null for librarians. ISBN is stored without spaces or hyphens.
+Only one loan with `returned_at IS NULL` may exist for a book. `student_id` is required for students and null for librarians. ISBN is stored without spaces or hyphens. `deleted_at` implements soft deletion so past loans keep their book information.

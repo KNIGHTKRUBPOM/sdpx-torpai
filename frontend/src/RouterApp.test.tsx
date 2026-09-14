@@ -31,7 +31,7 @@ describe('authenticated application', () => {
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Password123!' } })
     fireEvent.click(screen.getByRole('button', { name: 'เข้าสู่ระบบ' }))
     await waitFor(() => expect(screen.getByRole('link', { name: 'หนังสือของฉัน' })).toBeInTheDocument())
-    expect(screen.queryByRole('link', { name: 'เพิ่มหนังสือ' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'จัดการหนังสือ' })).not.toBeInTheDocument()
     expect(localStorage.getItem('unilib_access_token')).toBe('token')
   })
 })

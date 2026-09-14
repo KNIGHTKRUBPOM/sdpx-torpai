@@ -1,18 +1,27 @@
 openapi: 3.1.0
 info:
   title: UniLib API
-  version: 1.0.0
+  version: 1.1.0
+  license:
+    name: Educational project
+    url: https://github.com/KNIGHTKRUBPOM/sdpx-torpai
 servers:
-  - url: http://localhost:8000
+  - url: https://unilib-api.onrender.com
+    description: Render deployment target
 paths:
   /api/health:
     get:
       operationId: health
+      summary: Check API health
+      security: []
       responses:
         '200': { description: Healthy }
   /api/auth/register:
     post:
       operationId: registerStudent
+      summary: Register a student account
+      x-user-story: US-01
+      security: []
       requestBody:
         required: true
         content:
@@ -25,6 +34,9 @@ paths:
   /api/auth/login:
     post:
       operationId: login
+      summary: Login with email and password
+      x-user-story: US-02
+      security: []
       requestBody:
         required: true
         content:
@@ -33,9 +45,12 @@ paths:
       responses:
         '200': { description: Authenticated, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/auth/me:
     get:
       operationId: currentUser
+      summary: Get the current user
+      x-user-story: US-02
       security: [{ bearerAuth: [] }]
       responses:
         '200': { description: Current user, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
@@ -43,6 +58,8 @@ paths:
   /api/books:
     get:
       operationId: listBooks
+      summary: Search and filter catalog books
+      x-user-story: [US-03, US-04]
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: q, in: query, schema: { type: string } }
@@ -53,6 +70,8 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
     post:
       operationId: addBook
+      summary: Add or restore a catalog book
+      x-user-story: US-05
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -61,11 +80,30 @@ paths:
             schema: { $ref: '#/components/schemas/BookCreate' }
       responses:
         '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Book' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/books/{book_id}:
+    delete:
+      operationId: deleteBook
+      summary: Remove an available catalog book
+      x-user-story: US-10
+      description: Removes an available book from the catalog while retaining its historical loan records.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: book_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed from the catalog }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
   /api/loans:
     post:
       operationId: borrowBook
+      summary: Borrow an available book
+      x-user-story: US-06
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -74,31 +112,44 @@ paths:
             schema: { type: object, required: [isbn], properties: { isbn: { type: string } } }
       responses:
         '201': { description: Borrowed, content: { application/json: { schema: { $ref: '#/components/schemas/Loan' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
     get:
       operationId: listAllLoans
+      summary: List all loans for librarians
+      x-user-story: US-09
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: active_only, in: query, schema: { type: boolean, default: false } }
       responses:
         '200': { description: All loans for librarians, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Loan' } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
   /api/loans/me:
     get:
       operationId: listMyLoans
+      summary: List the current user's loans
+      x-user-story: US-08
       security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: active_only, in: query, schema: { type: boolean, default: true } }
       responses:
         '200': { description: Current user's active loans, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Loan' } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/loans/{loan_id}/return:
     post:
       operationId: returnLoan
+      summary: Return a borrowed book
+      x-user-story: US-07
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: loan_id, in: path, required: true, schema: { type: string, format: uuid } }
       responses:
         '200': { description: Returned, content: { application/json: { schema: { $ref: '#/components/schemas/Loan' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }

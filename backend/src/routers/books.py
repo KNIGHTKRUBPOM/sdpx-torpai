@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
 from src.database import get_db
@@ -26,3 +26,13 @@ def list_books(
 @router.post("", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
 def add_book(request: BookCreate, _librarian: User = Depends(require_librarian), session: Session = Depends(get_db)) -> Book:
     return BookService(session).create(request)
+
+
+@router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_book(
+    book_id: str,
+    _librarian: User = Depends(require_librarian),
+    session: Session = Depends(get_db),
+) -> Response:
+    BookService(session).delete(book_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

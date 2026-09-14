@@ -30,6 +30,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     const body = await response.json().catch(() => ({})) as { error?: { code?: string; message?: string } }
     throw new ApiError(body.error?.message ?? 'ไม่สามารถเชื่อมต่อระบบได้', body.error?.code, response.status)
   }
+  if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
 
@@ -39,6 +40,7 @@ export const api = {
   me: () => request<User>('/api/auth/me'),
   books: () => request<Book[]>('/api/books'),
   addBook: (input: { isbn: string; title: string; author: string; category: string }) => request<Book>('/api/books', { method: 'POST', body: JSON.stringify(input) }),
+  deleteBook: (bookId: string) => request<void>(`/api/books/${bookId}`, { method: 'DELETE' }),
   borrow: (isbn: string) => request<Loan>('/api/loans', { method: 'POST', body: JSON.stringify({ isbn }) }),
   myLoans: () => request<Loan[]>('/api/loans/me'),
   allLoans: () => request<Loan[]>('/api/loans'),

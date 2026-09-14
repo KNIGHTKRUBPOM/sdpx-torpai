@@ -67,6 +67,36 @@ def test_search_is_case_insensitive(session, available_book):
     assert BookService(session).search("CORMEN") == [available_book]
 
 
+def test_delete_book_archives_it_and_hides_it_from_search(session, available_book):
+    BookService(session).delete(available_book.id)
+    assert available_book.deleted_at is not None
+    assert BookService(session).search() == []
+
+
+def test_add_book_restores_a_previously_deleted_isbn(session, available_book):
+    service = BookService(session)
+    service.delete(available_book.id)
+    restored = service.create(BookCreate(isbn=available_book.isbn, title="Algorithms 4e", author="Cormen", category="Computer"))
+    assert restored.id == available_book.id
+    assert restored.title == "Algorithms 4e"
+    assert restored.deleted_at is None
+
+
+def test_delete_book_rejects_an_active_loan(session, student, available_book):
+    LoanService(session).borrow(student, available_book.isbn)
+    with pytest.raises(DomainError) as error:
+        BookService(session).delete(available_book.id)
+    assert error.value.code == "BOOK_HAS_ACTIVE_LOAN"
+
+
+def test_delete_book_preserves_returned_loan_history(session, student, available_book):
+    loan_service = LoanService(session)
+    loan = loan_service.borrow(student, available_book.isbn)
+    loan_service.return_loan(student, loan.id)
+    BookService(session).delete(available_book.id)
+    assert loan_service.get_by_id(loan.id).book.title == "Algorithms"
+
+
 def test_borrow_sets_due_date_and_return_restores_availability(session, student, available_book):
     now = datetime(2026, 9, 12, tzinfo=timezone.utc)
     service = LoanService(session, clock=lambda: now)
