@@ -4,14 +4,27 @@
 
 ## เตรียมก่อนเริ่มโชว์
 
-รันล่วงหน้าและรอให้ทุก service เป็น `healthy`:
+### Quick run: เปิด Web Local
+
+จาก root ของ repository รัน:
 
 ```bash
 docker compose up --build -d
 docker compose ps
 ```
 
-เตรียม browser สองหน้าต่าง: `http://localhost:5173` และ `http://localhost:8000/docs` รวมถึง terminal ที่อยู่ root ของ repository ห้ามใช้ `docker compose down -v` ระหว่างนำเสนอ เพราะคำสั่งนั้นลบข้อมูล PostgreSQL ใน volume
+รอให้ `db`, `backend` และ `frontend` พร้อม แล้วเปิด:
+
+- Web: `http://localhost:5173`
+- Swagger API: `http://localhost:8000/docs`
+
+หากเคย build แล้วและไม่มีการแก้ dependencies ใช้คำสั่งที่เร็วกว่าได้:
+
+```bash
+docker compose up -d
+```
+
+เตรียม browser สองหน้าต่างตาม URL ด้านบน และ terminal ที่อยู่ root ของ repository ห้ามใช้ `docker compose down -v` ระหว่างนำเสนอ เพราะคำสั่งนั้นลบข้อมูล PostgreSQL ใน volume
 
 บัญชี librarian สำหรับ local demo คือ `librarian@example.com` / `Library123!` เท่านั้น ห้ามนำรหัสนี้ไปใช้ production
 
@@ -58,29 +71,96 @@ Logout แล้ว login ด้วยบัญชี librarian จากนั�
 
 เปิด `backend/tests/unit/test_library_services.py` คู่กับ `backend/src/services/loan_service.py`
 
-### ขั้นที่ 1: แสดง test ที่เร็วและ deterministic
+### เตรียมครั้งเดียวก่อนนำเสนอ
+
+Build image สำหรับ test ล่วงหน้า:
 
 ```bash
 docker compose -p unilib-test -f compose.test.yaml build e2e
-docker compose -p unilib-test -f compose.test.yaml run --rm --no-deps e2e sh -c "cd /workspace/backend && python -m pytest tests/unit/test_library_services.py::test_borrow_sets_due_date_and_return_restores_availability -q"
 ```
 
-> “Test ฉีด clock คงที่เป็นวันที่ 12 กันยายน จึงตรวจได้แน่นอนว่ากำหนดคืนคือวันที่ 26 กันยายน ไม่ขึ้นกับวันที่นำเสนอ และใช้ฐานข้อมูล in-memory จึงรันเร็ว”
+ระหว่าง demo ใช้คำสั่งนี้ทุกครั้ง คำสั่ง `-v "$PWD/backend:/workspace/backend"` ทำให้ container อ่านโค้ดล่าสุดจากเครื่อง จึงไม่ต้อง build ใหม่หลังแก้ `14` เป็น `13` หรือเปลี่ยนกลับ:
+
+```bash
+docker compose -p unilib-test -f compose.test.yaml run --rm --no-deps \
+  -v "$PWD/backend:/workspace/backend" \
+  e2e sh -c "cd /workspace/backend && python -m pytest tests/unit/test_library_services.py::test_borrow_sets_due_date_and_return_restores_availability -q"
+```
+
+### ทางเลือกสำรอง: Python Local
+
+แนะนำ Python `3.12` เพื่อให้ตรงกับ `backend/Dockerfile` แต่ local ใช้ Python `3.10` ขึ้นไปได้ เครื่องนี้ทดสอบด้วย Python `3.13.7` แล้ว เตรียม environment ครั้งเดียวจาก root ของ repository:
+
+```bash
+python3 --version
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+หากสร้าง `.venv` และติดตั้ง dependencies ไว้แล้ว ก่อน demo ใช้เพียง:
+
+```bash
+source .venv/bin/activate
+cd backend
+python -m pytest tests/unit/test_library_services.py::test_borrow_sets_due_date_and_return_restores_availability -q
+```
+
+คำสั่งนี้ยังทดสอบ `LoanService` จริง แต่ใช้ SQLite in-memory จึงไม่ต้องเปิด PostgreSQL หรือ Web server การแก้ไฟล์บนเครื่องมีผลกับ test รอบถัดไปทันที
+
+### ขั้นที่ 1: Green — ยืนยันว่ากฎปัจจุบันผ่าน
+
+เลือกใช้คำสั่ง Docker หรือ Python Local ด้านบน แล้วรันคำสั่งเดิมในทุกช่วง ต้องเห็น `1 passed`
+
+ชี้โค้ดสองจุด:
+
+- Test ล็อกเวลาไว้ที่ `12 กันยายน 2026` และคาด due date เป็น `26 กันยายน 2026`
+- `LoanService.borrow` คำนวณ `borrowed_at + timedelta(days=14)`
+
+> “Unit test เรียก LoanService ตัวเดียวกับระบบจริง แต่ใช้ SQLite in-memory และฉีด clock คงที่เป็นวันที่ 12 กันยายน กฎ 14 วันจึงต้องได้วันที่ 26 กันยายน ผลไม่ขึ้นกับวันที่นำเสนอ”
 
 ### ขั้นที่ 2: ทำให้กฎเสียโดยตั้งใจ (Red)
 
-ใน `LoanService.borrow` เปลี่ยนชั่วคราวจาก `timedelta(days=14)` เป็น `timedelta(days=13)` แล้วรันคำสั่ง test เดิม ผลที่ควรเห็นคือ test fail เพราะ expected วันที่ 26 แต่ได้วันที่ 25
+ใน `backend/src/services/loan_service.py` ที่เมธอด `LoanService.borrow` เปลี่ยนชั่วคราว:
 
-> “นี่แสดงว่า test ตรวจ business rule จริง ไม่ได้แค่เรียก function แล้วผ่านเสมอ”
+```python
+due_at=borrowed_at + timedelta(days=14)
+```
+
+เป็น:
+
+```python
+due_at=borrowed_at + timedelta(days=13)
+```
+
+รันคำสั่งเดิมโดยไม่ต้อง build ใหม่ ต้องเห็น `1 failed` พร้อมค่าที่ต่างกัน:
+
+```text
+Expected: 2026-09-26
+Actual:   2026-09-25
+```
+
+> “เมื่อ production code บวกเพียง 13 วัน Service คืนวันที่ 25 แต่ test ยังยืนยัน business rule 14 วันว่าต้องเป็นวันที่ 26 จึงเกิด Red”
 
 ### ขั้นที่ 3: คืนกฎและเห็น Green
 
-เปลี่ยนกลับเป็น `timedelta(days=14)` แล้วรัน test เดิมอีกครั้ง ต้องได้ `1 passed`
+เปลี่ยนกลับเป็น `timedelta(days=14)` แล้วรันคำสั่งเดิมอีกครั้ง ต้องได้ `1 passed`
+
+> “เมื่อคืนกฎเป็น 14 วัน ผลลัพธ์กลับมาตรงกับข้อกำหนดและ test เป็น Green”
+
+### ขั้นที่ 4: ตรวจว่าไม่ทิ้งโค้ดผิดไว้
+
+```bash
+git diff --check
+git status --short
+```
 
 ตัวเลือกสำรอง: เปลี่ยนเงื่อนไขจำกัดการยืมจาก `>= 5` เป็น `>= 6` แล้วรัน:
 
 ```bash
-docker compose -p unilib-test -f compose.test.yaml run --rm --no-deps e2e sh -c "cd /workspace/backend && python -m pytest tests/unit/test_library_services.py::test_borrow_rejects_sixth_active_loan -q"
+docker compose -p unilib-test -f compose.test.yaml run --rm --no-deps \
+  -v "$PWD/backend:/workspace/backend" \
+  e2e sh -c "cd /workspace/backend && python -m pytest tests/unit/test_library_services.py::test_borrow_rejects_sixth_active_loan -q"
 ```
 
 อย่าจบ demo โดยทิ้งโค้ดที่แก้ให้ผิดไว้ ตรวจให้แน่ใจว่าเปลี่ยนกลับและ `git diff --check` ไม่มี error
