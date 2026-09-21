@@ -34,6 +34,8 @@ GitHub Actions (`.github/workflows/ci.yml`) checks pull requests and pushes to `
 
 Pull requests receive JUnit/coverage and Playwright HTML artifacts. A failed test must block merging. After the first successful staging run, record its run URL, service URLs, timings, and evidence in `docs/loop-metrics.md`.
 
-- Staging frontend URL: pending service connection
-- Staging API URL: pending service connection
+- Staging frontend URL: https://unilib-staging.vercel.app (domain reserved; first Actions deployment pending)
+- Staging API URL: https://unilib-api-rlse.onrender.com (`GET /api/health` returned HTTP 200 on 2026-09-22)
 - Commit-to-live time: pending first successful deployment
+
+The Render Blueprint and Free PostgreSQL/API services are provisioned. The Blueprint currently reads `feature/github-cicd-ws6` because that branch contains `autoDeployTrigger: off`; the API itself reads `develop`. After this PR is merged, switch the Blueprint source branch to `develop` so future Blueprint syncs retain this setting. The Vercel project `unilib-staging` has no Git connection and has Production `VITE_API_URL` set to the API URL above. Repository Admin access is still needed to create the GitHub environments, secrets, variables, and `main` ruleset before merging this PR to `develop`.
