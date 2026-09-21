@@ -16,3 +16,5 @@ test-results/
 *.db
 backend/.coverage
 backend/htmlcov/
+.vercel/
+backend/coverage.xml
