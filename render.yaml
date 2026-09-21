@@ -12,7 +12,7 @@ services:
     dockerContext: .
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /api/health
-    autoDeployTrigger: commit
+    autoDeployTrigger: off
     envVars:
       - key: APP_ENV
         value: production

@@ -1,0 +1,195 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}
+
+jobs:
+  lint-and-unit-test:
+    name: lint-and-unit-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          npm ci --prefix frontend
+
+      - name: Frontend lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Frontend build and typecheck
+        working-directory: frontend
+        run: npm run build
+
+      - name: Frontend component tests
+        working-directory: frontend
+        run: npm test -- --reporter=junit --outputFile=test-results/vitest.xml
+
+      - name: Backend tests and coverage
+        working-directory: backend
+        run: python -m pytest -q --cov=src --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=test-results/pytest.xml
+
+      - name: Test summary
+        if: always()
+        run: |
+          {
+            echo '## Lint, build and unit tests'
+            echo "Result: **${{ job.status }}**"
+            echo 'Download the test-results artifact for JUnit reports and backend coverage.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test results and coverage
+        if: always()
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: test-results-${{ github.run_id }}
+          path: |
+            backend/coverage.xml
+            backend/test-results/pytest.xml
+            frontend/test-results/vitest.xml
+          if-no-files-found: warn
+          retention-days: 7
+
+  e2e-tests:
+    name: e2e-tests
+    needs: lint-and-unit-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Run full stack and E2E tests
+        run: docker compose -p unilib-test -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from e2e
+
+      - name: Copy Playwright report
+        if: always()
+        run: docker compose -p unilib-test -f compose.test.yaml cp e2e:/workspace/frontend/playwright-report ./frontend/playwright-report
+
+      - name: E2E summary
+        if: always()
+        run: |
+          {
+            echo '## Full-stack E2E'
+            echo "Result: **${{ job.status }}**"
+            echo 'Download the playwright-report artifact for the HTML report.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: frontend/playwright-report/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Clean up test containers
+        if: always()
+        run: docker compose -p unilib-test -f compose.test.yaml down -v --remove-orphans
+
+  deploy-staging:
+    name: deploy-staging
+    needs: [lint-and-unit-test, e2e-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_WEB_URL }}
+    env:
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+      STAGING_WEB_URL: ${{ vars.STAGING_WEB_URL }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Validate staging configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in RENDER_API_KEY RENDER_SERVICE_ID VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID STAGING_API_URL STAGING_WEB_URL; do
+            if [[ -z "${!key:-}" ]]; then
+              echo "Missing staging configuration: $key" >&2
+              exit 1
+            fi
+          done
+
+      - name: Install Render CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=2.28.0
+          curl -fsSL "https://github.com/render-oss/cli/releases/download/v${version}/cli_${version}_linux_amd64.zip" -o /tmp/render.zip
+          mkdir -p /tmp/render-cli
+          unzip -q /tmp/render.zip -d /tmp/render-cli
+          install "/tmp/render-cli/cli_v${version}" /usr/local/bin/render
+          render --version
+
+      - name: Deploy tested commit to Render
+        run: render deploys create "$RENDER_SERVICE_ID" --commit "$GITHUB_SHA" --wait --confirm -o text
+
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Build and deploy staging frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global vercel@59.16.0
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+          if ! grep --recursive --fixed-strings --quiet -- "$STAGING_API_URL" .vercel/output/static; then
+            echo 'Vercel build does not contain the configured staging API URL' >&2
+            exit 1
+          fi
+          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Smoke check staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          api_response=$(curl --fail --location --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "${STAGING_API_URL%/}/api/health")
+          [[ "$api_response" == *'"status":"ok"'* ]]
+          web_response=$(curl --fail --location --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "${STAGING_WEB_URL%/}/")
+          [[ "$web_response" == *'<div id="root"'* ]]
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          {
+            echo '## Staging deployment'
+            echo "Result: **${{ job.status }}**"
+            echo "Commit: \`$GITHUB_SHA\`"
+            echo "API: $STAGING_API_URL"
+            echo "Web: $STAGING_WEB_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
