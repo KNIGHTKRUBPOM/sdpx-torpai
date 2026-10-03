@@ -8,6 +8,8 @@ from fastapi.responses import JSONResponse
 from src.config import get_settings
 from src.database import Base, SessionLocal, engine
 from src.errors import DomainError
+from src.logger import setup_logging
+from src.logging_middleware import RequestLoggingMiddleware
 from src.routers import auth, books, loans
 from src.routers.test_support import create_test_router
 from src.seed import seed_database
@@ -19,6 +21,7 @@ def error_payload(code: str, message: str) -> dict:
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    setup_logging(json_format=settings.app_env != "development")
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
@@ -28,6 +31,7 @@ def create_app() -> FastAPI:
         yield
 
     app = FastAPI(title="UniLib API", version="1.0.0", description="Campus library catalog, authentication, and loan service.", lifespan=lifespan)
+    app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.allowed_origins), allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
     @app.exception_handler(DomainError)

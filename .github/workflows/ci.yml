@@ -193,3 +193,43 @@ jobs:
             echo "API: $STAGING_API_URL"
             echo "Web: $STAGING_WEB_URL"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  performance:
+    name: performance
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 smoke check
+        run: k6 run performance/smoke.js
+        env:
+          BASE_URL: ${{ vars.STAGING_API_URL }}
+
+      - name: Run k6 load test
+        run: k6 run --summary-export=performance/results.json performance/load-test.js
+        env:
+          BASE_URL: ${{ vars.STAGING_API_URL }}
+
+      - name: Performance test summary
+        if: always()
+        run: |
+          {
+            echo '## Performance Load Test'
+            echo "Result: **${{ job.status }}**"
+            echo 'Download the k6-results artifact for the detailed JSON metrics.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v7.0.0
+        if: always()
+        with:
+          name: k6-results-${{ github.run_id }}
+          path: performance/results.json
+          if-no-files-found: warn
+          retention-days: 7
