@@ -1,0 +1,211 @@
+{
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "Browse and search": {
+                "name": "Browse and search",
+                "path": "::Browse and search",
+                "id": "50b65f0fdc6b6bd18773763bdc02a586",
+                "groups": {},
+                "checks": {
+                        "list status 200": {
+                            "path": "::Browse and search::list status 200",
+                            "id": "ae313f407dc2e2e26a74cdbecd408089",
+                            "passes": 168,
+                            "fails": 0,
+                            "name": "list status 200"
+                        },
+                        "list has items": {
+                            "name": "list has items",
+                            "path": "::Browse and search::list has items",
+                            "id": "6516dd78eb9e1b6c3b0fdd26224af9ce",
+                            "passes": 168,
+                            "fails": 0
+                        },
+                        "search status 200": {
+                            "name": "search status 200",
+                            "path": "::Browse and search::search status 200",
+                            "id": "62efb4f751c62c092c26d1ff21a3339b",
+                            "passes": 168,
+                            "fails": 0
+                        }
+                    }
+            },
+            "My loans dashboard": {
+                "name": "My loans dashboard",
+                "path": "::My loans dashboard",
+                "id": "a0b60ab8a9f86746a9dc5dda098f9826",
+                "groups": {},
+                "checks": {
+                        "my loans status 200": {
+                            "id": "5d9afb7926c9486d7ff07bc624e3430b",
+                            "passes": 168,
+                            "fails": 0,
+                            "name": "my loans status 200",
+                            "path": "::My loans dashboard::my loans status 200"
+                        }
+                    }
+            }
+        },
+        "checks": {}
+    },
+    "metrics": {
+        "http_req_receiving": {
+            "max": 8.8274,
+            "p(90)": 2.7302200000000063,
+            "p(95)": 4.34931999999999,
+            "avg": 0.6848394059405942,
+            "min": 0,
+            "med": 0
+        },
+        "checks": {
+            "passes": 672,
+            "fails": 0,
+            "value": 1
+        },
+        "vus_max": {
+            "value": 10,
+            "min": 10,
+            "max": 10
+        },
+        "errors": {
+            "passes": 0,
+            "fails": 504,
+            "thresholds": {
+                "rate<0.05": false
+            },
+            "value": 0
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 505,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_reqs": {
+            "rate": 4.169261725932401,
+            "count": 505
+        },
+        "http_req_connecting": {
+            "max": 6.148,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.040070099009900995,
+            "min": 0,
+            "med": 0
+        },
+        "data_sent": {
+            "count": 170778,
+            "rate": 1409.9369881807597
+        },
+        "http_req_duration{expected_response:true}": {
+            "max": 191.4343,
+            "p(90)": 10.756260000000003,
+            "p(95)": 12.428639999999994,
+            "avg": 9.530423960396043,
+            "min": 1.0291,
+            "med": 8.9017
+        },
+        "data_received": {
+            "count": 239626,
+            "rate": 1978.3435848282725
+        },
+        "group_duration": {
+            "avg": 2015.2968491071438,
+            "min": 2005.6546,
+            "med": 2015.9110999999998,
+            "max": 2036.9375,
+            "p(90)": 2021.25125,
+            "p(95)": 2023.4257
+        },
+        "http_req_duration": {
+            "avg": 9.530423960396043,
+            "min": 1.0291,
+            "med": 8.9017,
+            "max": 191.4343,
+            "p(90)": 10.756260000000003,
+            "p(95)": 12.428639999999994,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 10
+        },
+        "http_req_duration{name:list}": {
+            "avg": 8.766889285714281,
+            "min": 1.0291,
+            "med": 8.50975,
+            "max": 20.2589,
+            "p(90)": 9.768950000000002,
+            "p(95)": 11.038135,
+            "thresholds": {
+                "p(95)<300": false
+            }
+        },
+        "http_req_tls_handshaking": {
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0
+        },
+        "http_req_blocked": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.05034871287128712,
+            "min": 0,
+            "med": 0,
+            "max": 6.148
+        },
+        "iteration_duration": {
+            "avg": 4030.6125553571424,
+            "min": 4021.0407,
+            "med": 4029.91885,
+            "max": 4055.6448,
+            "p(90)": 4035.31726,
+            "p(95)": 4038.93025
+        },
+        "iterations": {
+            "count": 168,
+            "rate": 1.3870019207062245
+        },
+        "http_req_sending": {
+            "p(95)": 0,
+            "avg": 0.02366910891089109,
+            "min": 0,
+            "med": 0,
+            "max": 0.7508,
+            "p(90)": 0
+        },
+        "loan_latency": {
+            "p(90)": 10.712880000000002,
+            "p(95)": 11.631390000000001,
+            "avg": 9.233608333333327,
+            "min": 2.3766,
+            "med": 9.001249999999999,
+            "max": 17.3359,
+            "thresholds": {
+                "p(95)<300": false
+            }
+        },
+        "http_req_waiting": {
+            "avg": 8.821915445544555,
+            "min": 0.5923,
+            "med": 8.5763,
+            "max": 190.0585,
+            "p(90)": 10.35064,
+            "p(95)": 12.07101999999999
+        }
+    },
+    "setup_data": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlM2NmYTNiOS1hNjM0LTRkOTYtOTdlOS00MzRmZWY0M2JhMzEiLCJyb2xlIjoic3R1ZGVudCIsImV4cCI6MTc5MTA0NTQwOH0.BBBG3l3pdFJ-cz_VG7ZVHJLVoc3nnvt3CK26Ut-yS8U"
+    }
+}
