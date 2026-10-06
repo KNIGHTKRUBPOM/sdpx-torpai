@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/test-cd-pass' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/test-cd-pass' }}
 
 jobs:
   lint-and-unit-test:
@@ -116,7 +116,7 @@ jobs:
   deploy-staging:
     name: deploy-staging
     needs: [lint-and-unit-test, e2e-tests]
-    if: (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/test-cd-pass')) || github.event_name == 'workflow_dispatch'
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test-cd-pass')) || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment:
@@ -244,7 +244,7 @@ jobs:
     name: performance
     needs: deploy-staging
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/test-cd-pass')) || github.event_name == 'workflow_dispatch'
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test-cd-pass')) || github.event_name == 'workflow_dispatch'
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7.0.1
