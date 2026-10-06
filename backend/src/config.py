@@ -32,10 +32,12 @@ class Settings:
 
 
 def get_settings() -> Settings:
-    origins = os.getenv(
-        "ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173",
+    default_origins = (
+        "http://localhost:5173,http://127.0.0.1:5173,"
+        "https://sdpx-torpai-seven.vercel.app,https://sdpx-torpai.vercel.app"
     )
+    raw_origins = os.getenv("ALLOWED_ORIGINS")
+    origins = raw_origins if (raw_origins and raw_origins.strip()) else default_origins
     return Settings(
         app_env=os.getenv("APP_ENV", "development"),
         database_url=_database_url(),

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.dependencies import get_current_user
+from src.logger import logger
 from src.models import User
 from src.schemas import LoginRequest, RegisterRequest, TokenResponse, UserResponse
 from src.security import create_access_token
@@ -17,12 +18,16 @@ def token_for(user: User) -> TokenResponse:
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(request: RegisterRequest, session: Session = Depends(get_db)) -> TokenResponse:
-    return token_for(AuthService(session).register_student(request))
+    user = AuthService(session).register_student(request)
+    logger.info("user_registered", userId=user.id, role=user.role)
+    return token_for(user)
 
 
 @router.post("/login", response_model=TokenResponse)
 def login(request: LoginRequest, session: Session = Depends(get_db)) -> TokenResponse:
-    return token_for(AuthService(session).authenticate(request))
+    user = AuthService(session).authenticate(request)
+    logger.info("login_success", userId=user.id, role=user.role)
+    return token_for(user)
 
 
 @router.get("/me", response_model=UserResponse)

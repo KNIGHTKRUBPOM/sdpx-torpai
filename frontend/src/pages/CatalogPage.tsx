@@ -28,7 +28,7 @@ export function CatalogPage() {
   }
 
   return <>
-    <section className="hero"><div><div className="eyebrow">คลังความรู้ของมหาวิทยาลัย</div><h1>วันนี้อยากอ่าน<br /><em>เรื่องอะไร?</em></h1><p>ค้นหาหนังสือจากชื่อ ผู้แต่ง หรือ ISBN แล้วทำรายการยืมได้ทันที</p></div><div className="hero-stat"><strong>{books.filter((book) => book.status === 'available').length}</strong><span>เล่มพร้อมยืม</span></div></section>
+    <section className="hero"><div><div className="eyebrow">คลังความรู้ของมหาวิทยาลัย</div><h1>วันนี้ไม่อยากอ่าน<br /><em>เรื่องอะไร?</em></h1><p>ค้นหาหนังสือจากชื่อ ผู้แต่ง หรือ ISBN แล้วทำรายการยืมได้ทันที</p></div><div className="hero-stat"><strong>{books.filter((book) => book.status === 'available').length}</strong><span>เล่มพร้อมยืม</span></div></section>
     <section className="panel search-panel">
       <label className="search-box"><span>⌕</span><input aria-label="ค้นหาหนังสือ" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ค้นหาชื่อหนังสือ ผู้แต่ง หรือ ISBN" /></label>
       <select aria-label="หมวดหมู่" value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((item) => <option key={item}>{item}</option>)}</select>

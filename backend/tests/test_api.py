@@ -114,3 +114,21 @@ def test_api_requires_auth_and_uses_consistent_error_shape():
         assert response.json() == {"error": {"code": "AUTH_REQUIRED", "message": "กรุณาเข้าสู่ระบบ"}}
     session.close()
     app.dependency_overrides.clear()
+
+
+def test_cors_preflight_allows_vercel_origins():
+    client, session = make_client()
+    with client:
+        response = client.options(
+            "/api/auth/login",
+            headers={
+                "Origin": "https://sdpx-torpai-seven.vercel.app",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+        assert response.status_code == 200
+        assert response.headers.get("access-control-allow-origin") == "https://sdpx-torpai-seven.vercel.app"
+    session.close()
+    app.dependency_overrides.clear()
+

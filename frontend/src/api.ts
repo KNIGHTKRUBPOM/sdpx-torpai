@@ -1,6 +1,6 @@
 import type { Book, Loan, TokenResponse, User } from './types'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://unilib-api-rlse.onrender.com' : 'http://localhost:8000')
 const TOKEN_KEY = 'unilib_access_token'
 
 export class ApiError extends Error {
