@@ -121,7 +121,7 @@ jobs:
     timeout-minutes: 45
     environment:
       name: staging
-      url: ${{ vars.STAGING_WEB_URL || 'https://unilib-staging.vercel.app' }}
+      url: ${{ vars.STAGING_WEB_URL || 'https://sdpx-torpai.vercel.app' }}
     env:
       RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
@@ -194,7 +194,7 @@ jobs:
             npm ci --prefix frontend
             npm run --prefix frontend build
             echo "📦 Build output verified in frontend/dist"
-            echo "🌐 Target URL: https://unilib-staging.vercel.app"
+            echo "🌐 Target URL: https://sdpx-torpai.vercel.app"
             sleep 2
             echo "✅ Frontend deployed to Vercel production edge network!"
           else
@@ -215,7 +215,7 @@ jobs:
           if [[ "${IS_MOCK:-false}" == "true" ]]; then
             echo "🔍 [MOCK CD] Running automated post-deployment smoke check..."
             echo "📡 Checking API Health: https://unilib-api-rlse.onrender.com/api/health -> HTTP 200 OK ({\"status\":\"ok\"})"
-            echo "📡 Checking Web Root: https://unilib-staging.vercel.app/ -> HTTP 200 OK (<div id=\"root\">)"
+            echo "📡 Checking Web Root: https://sdpx-torpai.vercel.app/ -> HTTP 200 OK (<div id=\"root\">)"
             echo "✅ All post-deployment health checks passed!"
           else
             api_response=$(curl --fail --location --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "${STAGING_API_URL%/}/api/health")
@@ -237,7 +237,7 @@ jobs:
             echo "Result: **${{ job.status }}**"
             echo "Commit: \`$GITHUB_SHA\`"
             echo "API: ${STAGING_API_URL:-https://unilib-api-rlse.onrender.com}"
-            echo "Web: ${STAGING_WEB_URL:-https://unilib-staging.vercel.app}"
+            echo "Web: ${STAGING_WEB_URL:-https://sdpx-torpai.vercel.app}"
           } >> "$GITHUB_STEP_SUMMARY"
 
   performance:
