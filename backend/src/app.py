@@ -32,7 +32,14 @@ def create_app() -> FastAPI:
 
     app = FastAPI(title="UniLib API", version="1.0.0", description="Campus library catalog, authentication, and loan service.", lifespan=lifespan)
     app.add_middleware(RequestLoggingMiddleware)
-    app.add_middleware(CORSMiddleware, allow_origins=list(settings.allowed_origins), allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=list(settings.allowed_origins),
+        allow_origin_regex=r"https://.*\.vercel\.app",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     @app.exception_handler(DomainError)
     async def handle_domain_error(_request: Request, exc: DomainError) -> JSONResponse:
