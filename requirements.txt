@@ -9,4 +9,5 @@ PyJWT==2.10.1
 pytest==8.4.2
 pytest-cov==6.3.0
 SQLAlchemy==2.0.43
+structlog==25.2.0
 uvicorn[standard]==0.35.0
